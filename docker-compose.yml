@@ -1,0 +1,36 @@
+services:
+  pulseflow-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pulseflow-collab-api
+    environment:
+      PULSEFLOW_ENV: development
+      PULSEFLOW_HOST: 0.0.0.0
+      PULSEFLOW_PORT: "8095"
+      PULSEFLOW_SQLITE_PATH: /app/data/pulseflow_dev.db
+      REDIS_URL: redis://pulseflow-redis-dev:6379/0
+    ports:
+      - "8095:8095"
+    depends_on:
+      pulseflow-redis-dev:
+        condition: service_healthy
+    volumes:
+      - pulseflow_data:/app/data
+    restart: unless-stopped
+
+  pulseflow-redis-dev:
+    image: redis:7-alpine
+    container_name: pulseflow-collab-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6385:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pulseflow_data:

@@ -1,3 +1,26 @@
+# Python bytecode & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# Local SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment variables & secrets
+.env
+.env.*.local
+.env.development
+.env.production
 
 # Local private documentation (docs-oracle Zero Remote Exposure)
 /Docs/*
@@ -5,9 +28,12 @@
 !/docs/adr/
 !/docs/adr/**
 
-# Environment isolation files
-.env.development
-.env.production
-
 # Hook runner fallback mirror
 .agents/.agents/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
