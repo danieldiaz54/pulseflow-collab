@@ -1,15 +1,40 @@
 services:
+  pulseflow-postgres-dev:
+    image: postgres:16-alpine
+    container_name: pulseflow-postgres-dev
+    environment:
+      POSTGRES_USER: pulseflow_dev
+      POSTGRES_PASSWORD: pulseflow_dev_local
+      POSTGRES_DB: pulseflow_collab_dev
+    ports:
+      - "5439:5432"
+    volumes:
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+
+  pulseflow-redis-dev:
+    image: redis:7-alpine
+    container_name: pulseflow-redis-dev
+    ports:
+      - "6385:6379"
+    command: ["redis-server", "--appendonly", "no"]
+
   pulseflow-collab-dev:
-    image: node:22-alpine
+    image: python:3.12-alpine
     container_name: pulseflow-collab-dev
     working_dir: /app
     volumes:
       - .:/app
     ports:
-      - "3001:3000"
+      - "8095:8095"
     env_file:
       - path: .env.development
         required: false
     environment:
-      - NODE_ENV=development
-    command: sh -c "npm install && npm run dev"
+      - PULSEFLOW_ENV=development
+      - PULSEFLOW_PORT=8095
+      - POSTGRES_URL=postgresql://pulseflow_dev:pulseflow_dev_local@pulseflow-postgres-dev:5432/pulseflow_collab_dev
+      - REDIS_URL=redis://pulseflow-redis-dev:6379/0
+    depends_on:
+      - pulseflow-postgres-dev
+      - pulseflow-redis-dev
+    command: python3 -m src.presentation.api
