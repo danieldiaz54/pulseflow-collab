@@ -1,0 +1,3 @@
+# Core runtime runs out-of-the-box on Python 3.12 standard library.
+# Optional RFC 6455 async WebSocket gateway adapter:
+aiohttp>=3.9.5
