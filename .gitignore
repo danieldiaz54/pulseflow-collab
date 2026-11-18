@@ -1,0 +1,13 @@
+
+# Local private documentation (docs-oracle Zero Remote Exposure)
+/Docs/*
+/docs/*
+!/docs/adr/
+!/docs/adr/**
+
+# Environment isolation files
+.env.development
+.env.production
+
+# Hook runner fallback mirror
+.agents/.agents/
