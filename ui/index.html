@@ -1,2782 +1,810 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PulseFlow Collab — Modular Monolith &amp; Multi-Node Realtime Incident Command Center</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      /* Minimalist Industrial Warm Monochrome Palette */
-      --bg-canvas: #F7F6F3;
-      --bg-surface: #FFFFFF;
-      --bg-surface-subtle: #F9F9F8;
-      --bg-surface-muted: #F2F1ED;
-      --text-primary: #111111;
-      --text-secondary: #2F3437;
-      --text-muted: #787774;
-      --border-hairline: #EAEAEA;
-      --border-strong: #D6D5D0;
-
-      /* Spot Pastels (Strictly Muted & Semantic) */
-      --pastel-red-bg: #FDEBEC;
-      --pastel-red-fg: #9F2F2D;
-      --pastel-red-border: #F5D0D2;
-
-      --pastel-blue-bg: #E1F3FE;
-      --pastel-blue-fg: #1F6C9F;
-      --pastel-blue-border: #C4E5FA;
-
-      --pastel-green-bg: #EDF3EC;
-      --pastel-green-fg: #346538;
-      --pastel-green-border: #D2E3D0;
-
-      --pastel-yellow-bg: #FBF3DB;
-      --pastel-yellow-fg: #956400;
-      --pastel-yellow-border: #EFE0B4;
-
-      /* Typography Architecture (Editorial Serif + Geometric Sans + Technical Mono) */
-      --font-serif: 'Instrument Serif', 'Newsreader', 'Lyon Text', Georgia, serif;
-      --font-sans: 'Geist Sans', 'SF Pro Display', 'Plus Jakarta Sans', 'Helvetica Neue', sans-serif;
-      --font-mono: 'Geist Mono', 'JetBrains Mono', 'SF Mono', Consolas, monospace;
-
-      --radius-card: 8px;
-      --radius-btn: 5px;
-      --radius-pill: 9999px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html, body {
-      background-color: var(--bg-canvas);
-      color: var(--text-primary);
-      font-family: var(--font-sans);
-      font-size: 14px;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    /* Subtle Ambient Radial Texture Layer (Minimalist Skill Section 6 & 7) */
-    .ambient-layer {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      background-image:
-        radial-gradient(circle at 18% 12%, rgba(17, 17, 17, 0.025) 0%, transparent 45%),
-        radial-gradient(circle at 82% 78%, rgba(149, 100, 0, 0.025) 0%, transparent 50%);
-    }
-
-    .font-mono {
-      font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-    }
-
-    .font-serif {
-      font-family: var(--font-serif);
-      letter-spacing: -0.025em;
-      line-height: 1.1;
-    }
-
-    /* Layout Container */
-    .workspace-shell {
-      position: relative;
-      z-index: 1;
-      max-width: 1440px;
-      margin: 0 auto;
-      padding: 28px 32px 72px;
-    }
-
-    /* Faux-OS Window Chrome Bar */
-    .window-chrome {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-hairline);
-      border-radius: var(--radius-card);
-      padding: 10px 18px;
-      margin-bottom: 20px;
-    }
-
-    .window-dots {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-
-    .window-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #E2E1DC;
-      border: 1px solid #D0CFC9;
-    }
-
-    .window-title-bar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .window-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    kbd {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      background: var(--bg-canvas);
-      border: 1px solid var(--border-hairline);
-      border-radius: 4px;
-      padding: 2px 6px;
-      color: var(--text-secondary);
-    }
-
-    /* Editorial Header */
-    .editorial-header {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 24px;
-      padding: 24px 0 28px;
-      border-bottom: 1px solid var(--border-hairline);
-      margin-bottom: 24px;
-    }
-
-    .header-left {
-      max-width: 780px;
-    }
-
-    .eyebrow-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-    }
-
-    .hero-title {
-      font-family: var(--font-serif);
-      font-size: 44px;
-      font-weight: 400;
-      color: var(--text-primary);
-      letter-spacing: -0.03em;
-      line-height: 1.08;
-      margin-bottom: 10px;
-    }
-
-    .hero-subtitle {
-      font-size: 14px;
-      color: var(--text-muted);
-      max-width: 680px;
-    }
-
-    .header-controls {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-    }
-
-    /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-family: var(--font-sans);
-      font-size: 12.5px;
-      font-weight: 500;
-      padding: 8px 14px;
-      border-radius: var(--radius-btn);
-      border: 1px solid var(--border-hairline);
-      background: var(--bg-surface);
-      color: var(--text-primary);
-      cursor: pointer;
-      transition: background-color 150ms ease, transform 120ms ease, border-color 150ms ease;
-      user-select: none;
-    }
-
-    .btn:hover {
-      background: var(--bg-surface-subtle);
-      border-color: var(--border-strong);
-    }
-
-    .btn:active {
-      transform: scale(0.98);
-    }
-
-    .btn-primary {
-      background: #111111;
-      color: #FFFFFF;
-      border-color: #111111;
-    }
-
-    .btn-primary:hover {
-      background: #333333;
-      border-color: #333333;
-    }
-
-    .btn-race {
-      background: var(--pastel-red-bg);
-      color: var(--pastel-red-fg);
-      border-color: var(--pastel-red-border);
-      font-weight: 600;
-    }
-
-    .btn-race:hover {
-      background: #FADADD;
-      border-color: #E8B5B8;
-    }
-
-    .btn-rebase {
-      background: #111111;
-      color: #FFFFFF;
-      border-color: #111111;
-      font-weight: 600;
-    }
-
-    /* Pills & Badges */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 500;
-      line-height: 1.2;
-      padding: 3px 9px;
-      border-radius: var(--radius-pill);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border: 1px solid transparent;
-      white-space: nowrap;
-    }
-
-    .badge-red {
-      background: var(--pastel-red-bg);
-      color: var(--pastel-red-fg);
-      border-color: var(--pastel-red-border);
-    }
-
-    .badge-yellow {
-      background: var(--pastel-yellow-bg);
-      color: var(--pastel-yellow-fg);
-      border-color: var(--pastel-yellow-border);
-    }
-
-    .badge-blue {
-      background: var(--pastel-blue-bg);
-      color: var(--pastel-blue-fg);
-      border-color: var(--pastel-blue-border);
-    }
-
-    .badge-green {
-      background: var(--pastel-green-bg);
-      color: var(--pastel-green-fg);
-      border-color: var(--pastel-green-border);
-    }
-
-    .badge-neutral {
-      background: var(--bg-canvas);
-      color: var(--text-secondary);
-      border-color: var(--border-hairline);
-    }
-
-    /* Top Telemetry Strip (4-Column Bento Metrics) */
-    .telemetry-strip {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .telemetry-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-hairline);
-      border-radius: var(--radius-card);
-      padding: 20px 22px;
-      transition: box-shadow 200ms ease;
-    }
-
-    .telemetry-card:hover {
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    }
-
-    .telemetry-label {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 11.5px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
-    .telemetry-value {
-      font-family: var(--font-mono);
-      font-size: 26px;
-      font-weight: 600;
-      color: var(--text-primary);
-      letter-spacing: -0.02em;
-      margin-bottom: 6px;
-    }
-
-    .telemetry-meta {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    /* Primary Bento Grid: Matrix + Dual Operator Workbench */
-    .command-bento {
-      display: grid;
-      grid-template-columns: 440px 1fr;
-      gap: 20px;
-      margin-bottom: 24px;
-      align-items: start;
-    }
-
-    .bento-panel {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-hairline);
-      border-radius: var(--radius-card);
-      overflow: hidden;
-    }
-
-    .panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-      padding: 18px 22px;
-      border-bottom: 1px solid var(--border-hairline);
-      background: var(--bg-surface);
-    }
-
-    .panel-title-group {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .panel-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .panel-subtitle {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    /* Filter Bar inside Incident Command Matrix */
-    .filter-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 12px 22px;
-      border-bottom: 1px solid var(--border-hairline);
-      background: var(--bg-surface-subtle);
-    }
-
-    .filter-select, .filter-input {
-      font-family: var(--font-sans);
-      font-size: 12px;
-      color: var(--text-primary);
-      background: var(--bg-surface);
-      border: 1px solid var(--border-hairline);
-      border-radius: 4px;
-      padding: 6px 10px;
-      outline: none;
-    }
-
-    .filter-input {
-      flex: 1;
-      min-width: 120px;
-    }
-
-    .filter-select:focus, .filter-input:focus {
-      border-color: var(--text-primary);
-    }
-
-    /* Incident Matrix List */
-    .incident-list {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .incident-row {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding: 16px 22px;
-      border-bottom: 1px solid var(--border-hairline);
-      cursor: pointer;
-      transition: background-color 140ms ease;
-    }
-
-    .incident-row:last-child {
-      border-bottom: none;
-    }
-
-    .incident-row:hover {
-      background: var(--bg-surface-subtle);
-    }
-
-    .incident-row.active {
-      background: var(--bg-canvas);
-      border-left: 3px solid #111111;
-      padding-left: 19px;
-    }
-
-    .incident-row-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .incident-id-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .incident-id-code {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    .incident-title {
-      font-size: 13.5px;
-      font-weight: 600;
-      color: var(--text-primary);
-      line-height: 1.35;
-    }
-
-    .incident-row-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: 11.5px;
-      color: var(--text-muted);
-    }
-
-    /* Workbench Content */
-    .workbench-header-banner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 16px;
-      padding: 18px 24px;
-      background: var(--bg-surface-subtle);
-      border-bottom: 1px solid var(--border-hairline);
-    }
-
-    .selected-incident-summary {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .selected-incident-headline {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .selected-incident-title {
-      font-family: var(--font-serif);
-      font-size: 26px;
-      color: var(--text-primary);
-    }
-
-    /* 409 Conflict Diagnostic Alert Panel */
-    .conflict-diagnostic-banner {
-      margin: 18px 24px 0;
-      padding: 18px 20px;
-      background: var(--pastel-red-bg);
-      border: 1px solid var(--pastel-red-border);
-      border-radius: var(--radius-card);
-      display: none;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .conflict-diagnostic-banner.visible {
-      display: flex;
-    }
-
-    .conflict-banner-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .conflict-banner-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--pastel-red-fg);
-    }
-
-    .conflict-banner-body {
-      font-size: 13px;
-      color: var(--text-secondary);
-      line-height: 1.5;
-    }
-
-    .conflict-banner-metrics {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      background: rgba(255, 255, 255, 0.75);
-      padding: 10px 14px;
-      border-radius: 6px;
-      border: 1px solid var(--pastel-red-border);
-    }
-
-    .conflict-banner-actions {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 10px;
-    }
-
-    /* Dual Operator Grid */
-    .operators-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      padding: 22px 24px;
-      border-bottom: 1px solid var(--border-hairline);
-    }
-
-    .operator-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-hairline);
-      border-radius: var(--radius-card);
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      transition: border-color 180ms ease;
-    }
-
-    .operator-card.conflict-state {
-      border-color: var(--pastel-red-fg);
-      background: #FFFDFD;
-    }
-
-    .operator-card.success-state {
-      border-color: var(--pastel-green-fg);
-    }
-
-    .operator-card-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border-hairline);
-    }
-
-    .operator-title {
-      font-size: 13.5px;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    .operator-handle {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .form-field {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .form-label {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 11.5px;
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
-
-    .form-input, .form-select, .form-textarea {
-      font-family: var(--font-sans);
-      font-size: 12.5px;
-      color: var(--text-primary);
-      background: var(--bg-surface);
-      border: 1px solid var(--border-hairline);
-      border-radius: 5px;
-      padding: 8px 10px;
-      outline: none;
-      transition: border-color 140ms ease;
-      width: 100%;
-    }
-
-    .form-input.font-mono {
-      font-family: var(--font-mono);
-      font-weight: 600;
-    }
-
-    .form-textarea {
-      resize: vertical;
-      min-height: 70px;
-      line-height: 1.45;
-    }
-
-    .form-input:focus, .form-select:focus, .form-textarea:focus {
-      border-color: #111111;
-    }
-
-    .form-input.input-invalid {
-      border-color: var(--pastel-red-fg);
-      background: var(--pastel-red-bg);
-    }
-
-    .field-validation-msg {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--pastel-red-fg);
-      min-height: 15px;
-    }
-
-    .operator-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding-top: 8px;
-      border-top: 1px solid var(--border-hairline);
-    }
-
-    .http-status-readout {
-      font-family: var(--font-mono);
-      font-size: 11.5px;
-    }
-
-    /* Timeline Comments & State Machine Reference Strip */
-    .incident-context-grid {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 20px;
-      padding: 20px 24px;
-      background: var(--bg-surface-subtle);
-    }
-
-    .comments-box, .state-rules-box {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-hairline);
-      border-radius: var(--radius-card);
-      padding: 16px 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .comment-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-height: 190px;
-      overflow-y: auto;
-    }
-
-    .comment-item {
-      padding: 10px 12px;
-      background: var(--bg-surface-subtle);
-      border: 1px solid var(--border-hairline);
-      border-radius: 6px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .comment-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .comment-body {
-      font-size: 12.5px;
-      color: var(--text-secondary);
-    }
-
-    .comment-composer {
-      display: flex;
-      gap: 8px;
-    }
-
-    /* Bottom Dual Bento: Multi-Node Redis Pub/Sub Backplane + Immutable Audit Ledger */
-    .bottom-bento {
-      display: grid;
-      grid-template-columns: 1fr 1.15fr;
-      gap: 20px;
-    }
-
-    .event-stream-list {
-      display: flex;
-      flex-direction: column;
-      max-height: 440px;
-      overflow-y: auto;
-    }
-
-    .event-envelope-item {
-      padding: 14px 22px;
-      border-bottom: 1px solid var(--border-hairline);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .event-envelope-item:last-child {
-      border-bottom: none;
-    }
-
-    .event-envelope-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .fanout-route {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .payload-code {
-      font-family: var(--font-mono);
-      font-size: 11.5px;
-      background: var(--bg-canvas);
-      border: 1px solid var(--border-hairline);
-      border-radius: 5px;
-      padding: 8px 10px;
-      color: var(--text-secondary);
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    /* Audit Ledger Table */
-    .table-scroll {
-      overflow-x: auto;
-      max-height: 440px;
-      overflow-y: auto;
-    }
-
-    .ledger-table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 12.5px;
-    }
-
-    .ledger-table th {
-      position: sticky;
-      top: 0;
-      background: var(--bg-surface-subtle);
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border-hairline);
-    }
-
-    .ledger-table td {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border-hairline);
-      vertical-align: top;
-      color: var(--text-secondary);
-    }
-
-    .ledger-table tr:hover td {
-      background: var(--bg-surface-subtle);
-    }
-
-    .diff-chip-list {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .diff-chip {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      background: var(--bg-canvas);
-      border: 1px solid var(--border-hairline);
-      border-radius: 4px;
-      padding: 3px 7px;
-      display: inline-block;
-    }
-
-    .transition-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11.5px;
-    }
-
-    .transition-table th, .transition-table td {
-      padding: 6px 8px;
-      border-bottom: 1px solid var(--border-hairline);
-      text-align: left;
-    }
-
-    /* Scroll Entry Reveal Animation (Minimalist Skill Section 7) */
-    .reveal-block {
-      opacity: 0;
-      transform: translateY(12px);
-      transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .reveal-block.is-visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .svg-icon {
-      width: 15px;
-      height: 15px;
-      stroke: currentColor;
-      stroke-width: 1.8;
-      fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      flex-shrink: 0;
-    }
-
-    @media (max-width: 1180px) {
-      .telemetry-strip {
-        grid-template-columns: repeat(2, 1fr);
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PulseFlow — Tablero Colaborativo en Tiempo Real</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Sora:wght@600;700&display=swap"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg-obsidian: #090d16;
+        --bg-column: #111827;
+        --bg-card: #172033;
+        --bg-card-hover: #1c273d;
+        --text-snow: #f8fafc;
+        --text-slate: #94a3b8;
+        --border-slate: #1e293b;
+        --accent-emerald: #10b981;
+        --accent-emerald-hover: #059669;
+        --accent-amber: #f59e0b;
+        --amber-tint: rgba(245, 158, 11, 0.14);
+        --emerald-tint: rgba(16, 185, 129, 0.14);
+        --danger-rose: #f43f5e;
+        --font-display: "Sora", system-ui, sans-serif;
+        --font-sans: "Manrope", system-ui, sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, monospace;
       }
-      .command-bento,
-      .bottom-bento {
-        grid-template-columns: 1fr;
-      }
-    }
 
-    @media (max-width: 768px) {
-      .telemetry-strip,
-      .operators-grid,
-      .incident-context-grid {
-        grid-template-columns: 1fr;
+      *, *::before, *::after { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg-obsidian);
+        color: var(--text-snow);
+        font-family: var(--font-sans);
+        line-height: 1.5;
+        min-height: 100dvh;
       }
-    }
-  </style>
-</head>
-<body>
-  <div class="ambient-layer" aria-hidden="true"></div>
+      ::selection { background: var(--emerald-tint); color: var(--accent-emerald); }
+      :focus-visible { outline: 2px solid var(--accent-emerald); outline-offset: 2px; }
+      button, input, textarea, select { font-family: inherit; }
 
-  <div class="workspace-shell">
-    <!-- Faux-OS Window Chrome -->
-    <header class="window-chrome reveal-block">
-      <div class="window-dots" aria-hidden="true">
-        <span class="window-dot"></span>
-        <span class="window-dot"></span>
-        <span class="window-dot"></span>
-      </div>
-      <div class="window-title-bar">
-        <span class="font-mono">pulseflow-collab // modular-monolith-v1</span>
-        <span>·</span>
-        <span class="font-mono">OCC + Redis Pub/Sub Multi-Node Backplane</span>
-      </div>
-      <div class="window-actions">
-        <span id="connection-mode-badge" class="badge badge-neutral font-mono">PROBING...</span>
-        <kbd>OCC v1..vN</kbd>
+      .pf-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: rgba(9, 13, 22, 0.9);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border-slate);
+      }
+      .pf-header-inner {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 12px 22px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+      .pf-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .pf-brand-mark {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: var(--accent-emerald);
+        color: #052e16;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 16px;
+      }
+      .pf-brand h1 {
+        font-family: var(--font-display);
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin: 0;
+      }
+      .pf-brand-sub {
+        font-size: 13px;
+        color: var(--text-slate);
+      }
+
+      .pf-presence-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .pf-avatar-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        background: var(--bg-column);
+        border: 1px solid var(--border-slate);
+        font-size: 12.5px;
+        color: var(--text-snow);
+      }
+      .pf-dot-live {
+        width: 7px;
+        height: 7px;
+        border-radius: 9999px;
+        background: var(--accent-emerald);
+      }
+
+      .pf-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .pf-btn-primary {
+        border: 1px solid var(--accent-emerald);
+        background: var(--accent-emerald);
+        color: #042f2e;
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 13.5px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .pf-btn-primary:hover { background: var(--accent-emerald-hover); color: #ffffff; }
+      .pf-btn-amber {
+        border: 1px solid rgba(245, 158, 11, 0.45);
+        background: var(--amber-tint);
+        color: #fcd34d;
+        border-radius: 8px;
+        padding: 8px 13px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .pf-btn-amber:hover { background: rgba(245, 158, 11, 0.24); }
+      .pf-btn-ghost {
+        border: 1px solid var(--border-slate);
+        background: var(--bg-column);
+        color: var(--text-snow);
+        border-radius: 8px;
+        padding: 8px 13px;
+        font-size: 13.5px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+      .pf-btn-ghost:hover { background: var(--bg-card); }
+
+      .pf-main {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 22px 22px 54px;
+      }
+      .pf-conflict-banner {
+        margin-bottom: 18px;
+        padding: 14px 18px;
+        border-radius: 12px;
+        border: 1px solid rgba(245, 158, 11, 0.55);
+        background: var(--amber-tint);
+        display: none;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .pf-conflict-banner[data-visible="true"] { display: flex; }
+
+      .pf-board {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        align-items: start;
+      }
+      .pf-col {
+        background: var(--bg-column);
+        border: 1px solid var(--border-slate);
+        border-radius: 14px;
+        padding: 16px;
+        min-height: 460px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .pf-col-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-slate);
+      }
+      .pf-col-head h2 {
+        font-family: var(--font-display);
+        font-size: 15.5px;
+        margin: 0;
+      }
+      .pf-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+      .pf-col-count {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--text-slate);
+        background: var(--bg-obsidian);
+        padding: 2px 8px;
+        border-radius: 9999px;
+      }
+
+      .pf-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-slate);
+        border-radius: 11px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: border-color 150ms ease, background-color 150ms ease;
+      }
+      .pf-card:hover { background: var(--bg-card-hover); border-color: #334155; }
+      .pf-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .pf-priority-badge {
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 6px;
+      }
+      .pf-priority-high { background: rgba(244, 63, 94, 0.16); color: #fda4af; }
+      .pf-priority-med { background: var(--amber-tint); color: #fcd34d; }
+      .pf-priority-norm { background: var(--emerald-tint); color: #6ee7b7; }
+      .pf-card-title {
+        font-family: var(--font-display);
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-snow);
+      }
+      .pf-card-summary {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-slate);
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .pf-card-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--border-slate);
+        font-size: 12px;
+        color: var(--text-slate);
+      }
+      .pf-mini-btn {
+        border: 1px solid var(--border-slate);
+        background: var(--bg-obsidian);
+        color: var(--text-snow);
+        border-radius: 6px;
+        padding: 4px 9px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+      .pf-mini-btn:hover { border-color: var(--accent-emerald); color: var(--accent-emerald); }
+
+      /* Drawer / Modal */
+      .pf-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.65);
+        z-index: 40;
+        display: none;
+        justify-content: flex-end;
+      }
+      .pf-backdrop[data-open="true"] { display: flex; }
+      .pf-drawer {
+        width: min(460px, 100vw);
+        height: 100%;
+        background: var(--bg-column);
+        border-left: 1px solid var(--border-slate);
+        display: flex;
+        flex-direction: column;
+      }
+      .pf-drawer-head {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-slate);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .pf-drawer-head h2 { font-family: var(--font-display); font-size: 18px; margin: 0; }
+      .pf-drawer-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .pf-input {
+        width: 100%;
+        background: var(--bg-obsidian);
+        border: 1px solid var(--border-slate);
+        border-radius: 8px;
+        padding: 9px 11px;
+        color: var(--text-snow);
+        font-size: 13.5px;
+      }
+      .pf-box {
+        background: var(--bg-obsidian);
+        border: 1px solid var(--border-slate);
+        border-radius: 10px;
+        padding: 12px;
+        font-size: 12.5px;
+      }
+      .pf-toast {
+        position: fixed;
+        bottom: 18px;
+        right: 18px;
+        z-index: 50;
+        background: var(--bg-card);
+        border: 1px solid var(--accent-emerald);
+        color: var(--text-snow);
+        padding: 10px 14px;
+        border-radius: 9px;
+        font-size: 13px;
+        display: none;
+      }
+      .pf-toast[data-visible="true"] { display: block; }
+
+      @media (max-width: 900px) {
+        .pf-board { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="pf-header">
+      <div class="pf-header-inner">
+        <div class="pf-brand">
+          <span class="pf-brand-mark">P</span>
+          <div>
+            <h1>PulseFlow</h1>
+            <span class="pf-brand-sub">Tablero colaborativo en vivo sin sobrescrituras</span>
+          </div>
+        </div>
+
+        <div class="pf-presence-row" id="pf-presence-bar" aria-label="Compañeros conectados"></div>
+
+        <div class="pf-actions">
+          <button type="button" class="pf-btn-amber" id="pf-sim-conflict-btn">Simular edición simultánea</button>
+          <button type="button" class="pf-btn-primary" id="pf-new-task-btn">+ Nueva tarea</button>
+          <button type="button" class="pf-btn-ghost" id="pf-arch-btn">Arquitectura</button>
+        </div>
       </div>
     </header>
 
-    <!-- Editorial Header -->
-    <section class="editorial-header reveal-block">
-      <div class="header-left">
-        <div class="eyebrow-tag">
-          <span>MODULAR MONOLITH ARCHITECTURE</span>
-          <span>//</span>
-          <span>DOMAIN-DRIVEN INCIDENT COMMAND</span>
+    <main class="pf-main">
+      <div class="pf-conflict-banner" id="pf-conflict-banner" role="alert">
+        <div>
+          <strong style="color:#fcd34d;display:block;">Un compañero acaba de actualizar esta tarjeta</strong>
+          <span id="pf-conflict-detail" style="font-size:13px;color:var(--text-snow);"></span>
         </div>
-        <h1 class="hero-title">PulseFlow Realtime Incident Command &amp; OCC Workbench</h1>
-        <p class="hero-subtitle">
-          Deterministic Optimistic Concurrency Control (<span class="font-mono">ERR-409-OPTIMISTIC-LOCK</span>),
-          lifecycle state machine enforcement, and multi-node WebSocket Pub/Sub fan-out across
-          <span class="font-mono">ws-gateway-01</span> and <span class="font-mono">ws-gateway-02</span>.
-        </p>
-      </div>
-      <div class="header-controls">
-        <button id="btn-simulate-race" type="button" class="btn btn-race">
-          <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
-          </svg>
-          <span>Simulate Concurrent Race (409 Conflict)</span>
-        </button>
-        <button id="btn-sync-engine" type="button" class="btn">
-          <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-            <path d="M3 3v5h5"></path>
-            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
-            <path d="M16 16h5v5"></path>
-          </svg>
-          <span>Refresh / Reset State</span>
-        </button>
-      </div>
-    </section>
-
-    <!-- Top Telemetry Strip -->
-    <section class="telemetry-strip reveal-block" aria-label="Realtime Telemetry Strip">
-      <article class="telemetry-card">
-        <div class="telemetry-label">
-          <span>Active Incidents</span>
-          <span class="badge badge-neutral font-mono">5 SEEDED</span>
-        </div>
-        <div id="metric-active-incidents" class="telemetry-value font-mono">0 / 5</div>
-        <div id="metric-active-breakdown" class="telemetry-meta font-mono">SEV1: 0 · SEV2: 0 · RESOLVED: 0</div>
-      </article>
-
-      <article class="telemetry-card">
-        <div class="telemetry-label">
-          <span>SEV1 / SEV2 SLA Policy</span>
-          <span id="metric-sla-badge" class="badge badge-green font-mono">WITHIN SLA</span>
-        </div>
-        <div id="metric-sla-countdown" class="telemetry-value font-mono">15.0m / 60.0m</div>
-        <div class="telemetry-meta font-mono">Targets: SEV1=15m · SEV2=60m · SEV3=240m</div>
-      </article>
-
-      <article class="telemetry-card">
-        <div class="telemetry-label">
-          <span>WebSocket Gateway Nodes</span>
-          <span class="badge badge-blue font-mono">2 ACTIVE REPLICAS</span>
-        </div>
-        <div class="telemetry-value font-mono">ws-gateway-01 · 02</div>
-        <div class="telemetry-meta">
-          <span class="badge badge-blue font-mono">sre-daniela @ 01</span>
-          <span class="badge badge-blue font-mono">oncall-carlos @ 02</span>
-        </div>
-      </article>
-
-      <article class="telemetry-card">
-        <div class="telemetry-label">
-          <span>Pub/Sub &amp; OCC Telemetry</span>
-          <span id="metric-occ-conflicts-badge" class="badge badge-neutral font-mono">0 CONFLICTS</span>
-        </div>
-        <div id="metric-pubsub-count" class="telemetry-value font-mono">0 envelopes</div>
-        <div id="metric-audit-count" class="telemetry-meta font-mono">Audit Ledger: 0 immutable records</div>
-      </article>
-    </section>
-
-    <!-- Main Command Bento: Matrix (Left) + Dual-Operator OCC Workbench (Right) -->
-    <section class="command-bento reveal-block">
-      <!-- Left: Incident Command Matrix -->
-      <div class="bento-panel">
-        <div class="panel-header">
-          <div class="panel-title-group">
-            <h2 class="panel-title">
-              <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-              </svg>
-              <span>Incident Command Matrix</span>
-            </h2>
-            <p class="panel-subtitle">Select an aggregate root to load into Dual-Operator OCC Workbench</p>
-          </div>
-          <span id="matrix-count-badge" class="badge badge-neutral font-mono">5 ITEMS</span>
-        </div>
-
-        <div class="filter-bar">
-          <select id="filter-severity" class="filter-select font-mono" aria-label="Filter by severity">
-            <option value="ALL">SEV: ALL</option>
-            <option value="SEV1">SEV1 (15m SLA)</option>
-            <option value="SEV2">SEV2 (60m SLA)</option>
-            <option value="SEV3">SEV3 (240m SLA)</option>
-            <option value="SEV4">SEV4 (1440m SLA)</option>
-          </select>
-          <select id="filter-status" class="filter-select font-mono" aria-label="Filter by status">
-            <option value="ALL">STATUS: ALL</option>
-            <option value="OPEN">OPEN</option>
-            <option value="INVESTIGATING">INVESTIGATING</option>
-            <option value="MITIGATED">MITIGATED</option>
-            <option value="RESOLVED">RESOLVED</option>
-          </select>
-          <input id="filter-query" type="search" class="filter-input" placeholder="Filter ID, service, commander..." aria-label="Filter incidents by keyword" />
-        </div>
-
-        <div id="incident-matrix-list" class="incident-list" role="listbox" aria-label="Incident list"></div>
+        <button type="button" class="pf-btn-primary" id="pf-reload-latest-btn">Cargar última versión</button>
       </div>
 
-      <!-- Right: Dual-Operator Optimistic Concurrency Workbench -->
-      <div class="bento-panel">
-        <div class="panel-header">
-          <div class="panel-title-group">
-            <h2 class="panel-title">
-              <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M16 3h5v5"></path>
-                <path d="M8 3H3v5"></path>
-                <path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"></path>
-                <path d="m15 9 6-6"></path>
-              </svg>
-              <span>Dual-Operator Optimistic Concurrency Workbench</span>
-            </h2>
-            <p class="panel-subtitle">
-              Side-by-side <span class="font-mono">PATCH /api/v1/incidents/{id}</span> terminals enforcing
-              <span class="font-mono">expected_version == actual_version</span>
-            </p>
+      <section class="pf-board" aria-label="Columnas de tareas del equipo">
+        <div class="pf-col">
+          <div class="pf-col-head">
+            <h2>Por hacer</h2>
+            <span class="pf-col-count" id="pf-count-open">0</span>
           </div>
-          <div class="header-controls">
-            <button id="btn-sync-both-versions" type="button" class="btn font-mono">Sync Both Operators to Latest Version</button>
-          </div>
+          <div id="pf-list-open" style="display:flex;flex-direction:column;gap:12px;"></div>
         </div>
 
-        <!-- Selected Incident Banner -->
-        <div class="workbench-header-banner">
-          <div class="selected-incident-summary">
-            <div class="selected-incident-headline">
-              <span id="wb-incident-id" class="badge badge-neutral font-mono">INC-2026-101</span>
-              <span id="wb-incident-severity" class="badge badge-red font-mono">SEV1</span>
-              <span id="wb-incident-status" class="badge badge-yellow font-mono">INVESTIGATING</span>
-              <span id="wb-incident-version" class="badge badge-blue font-mono">v2</span>
-              <span id="wb-incident-sla" class="badge badge-green font-mono">SLA: 7.40m REM</span>
-            </div>
-            <h3 id="wb-incident-title" class="selected-incident-title">Redis Pub/Sub Backplane Latency Spike</h3>
-            <div class="telemetry-meta font-mono">
-              <span>Service: <strong id="wb-incident-service">pulseflow-sync-backplane</strong></span>
-              <span>·</span>
-              <span>Commander: <strong id="wb-incident-commander">sre.valeria</strong></span>
-              <span>·</span>
-              <span>Updated: <span id="wb-incident-updated">2026-04-12T14:18:00+00:00</span></span>
-            </div>
+        <div class="pf-col">
+          <div class="pf-col-head">
+            <h2>En progreso</h2>
+            <span class="pf-col-count" id="pf-count-prog">0</span>
           </div>
+          <div id="pf-list-prog" style="display:flex;flex-direction:column;gap:12px;"></div>
         </div>
 
-        <!-- HTTP 409 Conflict Diagnostic Banner -->
-        <div id="conflict-diagnostic-panel" class="conflict-diagnostic-banner" role="alert">
-          <div class="conflict-banner-top">
-            <div class="conflict-banner-title">
-              <span class="badge badge-red font-mono">HTTP 409 CONFLICT</span>
-              <span id="conflict-code-label">ERR-409-OPTIMISTIC-LOCK</span>
-            </div>
-            <span id="conflict-node-label" class="badge badge-neutral font-mono">REJECTED ON ws-gateway-02</span>
+        <div class="pf-col">
+          <div class="pf-col-head">
+            <h2>Resuelto</h2>
+            <span class="pf-col-count" id="pf-count-done">0</span>
           </div>
-          <p id="conflict-message-body" class="conflict-banner-body">
-            Stale write detected: Operator B attempted to commit against an outdated aggregate version.
-          </p>
-          <div class="conflict-banner-metrics">
-            <span>INCIDENT: <strong id="conflict-metric-id">INC-2026-101</strong></span>
-            <span>·</span>
-            <span>OPERATOR: <strong id="conflict-metric-actor">oncall-carlos</strong></span>
-            <span>·</span>
-            <span>EXPECTED_VERSION: <strong id="conflict-metric-expected">v2</strong></span>
-            <span>·</span>
-            <span>ACTUAL_VERSION: <strong id="conflict-metric-actual">v3</strong></span>
-          </div>
-          <div class="conflict-banner-actions">
-            <button id="btn-dismiss-conflict" type="button" class="btn">Dismiss Notice</button>
-            <button id="btn-rebase-retry" type="button" class="btn btn-rebase">
-              Rebase Operator B to Latest Version &amp; Retry PATCH
-            </button>
-          </div>
+          <div id="pf-list-done" style="display:flex;flex-direction:column;gap:12px;"></div>
         </div>
+      </section>
+    </main>
 
-        <!-- Side-by-Side Operators -->
-        <div class="operators-grid">
-          <!-- Operator A -->
-          <div id="operator-card-a" class="operator-card">
-            <div class="operator-card-header">
-              <div>
-                <div class="operator-title">Operator A · Primary SRE Terminal</div>
-                <div class="operator-handle font-mono">sre-daniela @ ws-gateway-01</div>
-              </div>
-              <span id="op-a-version-pill" class="badge badge-blue font-mono">OBSERVED: v2</span>
-            </div>
-
-            <div class="form-row">
-              <div class="form-field">
-                <label class="form-label" for="op-a-expected-version">
-                  <span>Expected Version (<span class="font-mono">int &gt;= 1</span>)</span>
-                </label>
-                <input id="op-a-expected-version" type="number" min="1" step="1" class="form-input font-mono" value="2" />
-                <div id="op-a-version-error" class="field-validation-msg"></div>
-              </div>
-
-              <div class="form-field">
-                <label class="form-label" for="op-a-status">
-                  <span>Lifecycle Status</span>
-                </label>
-                <select id="op-a-status" class="form-select font-mono">
-                  <option value="OPEN">OPEN</option>
-                  <option value="INVESTIGATING">INVESTIGATING</option>
-                  <option value="MITIGATED">MITIGATED</option>
-                  <option value="RESOLVED">RESOLVED</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-field">
-                <label class="form-label" for="op-a-severity">
-                  <span>Severity Tier</span>
-                </label>
-                <select id="op-a-severity" class="form-select font-mono">
-                  <option value="SEV1">SEV1 (15m SLA)</option>
-                  <option value="SEV2">SEV2 (60m SLA)</option>
-                  <option value="SEV3">SEV3 (240m SLA)</option>
-                  <option value="SEV4">SEV4 (1440m SLA)</option>
-                </select>
-              </div>
-
-              <div class="form-field">
-                <label class="form-label" for="op-a-commander">
-                  <span>Incident Commander</span>
-                </label>
-                <input id="op-a-commander" type="text" class="form-input font-mono" value="sre.valeria" />
-              </div>
-            </div>
-
-            <div class="form-field">
-              <label class="form-label" for="op-a-summary">
-                <span>Mitigation &amp; Telemetry Summary</span>
-              </label>
-              <textarea id="op-a-summary" class="form-textarea"></textarea>
-            </div>
-
-            <div class="operator-footer">
-              <span id="op-a-http-status" class="http-status-readout badge badge-neutral font-mono">READY · ws-gateway-01</span>
-              <div class="window-actions">
-                <button id="btn-op-a-sync" type="button" class="btn font-mono">Sync v</button>
-                <button id="btn-op-a-commit" type="button" class="btn btn-primary">Commit PATCH (Op A)</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Operator B -->
-          <div id="operator-card-b" class="operator-card">
-            <div class="operator-card-header">
-              <div>
-                <div class="operator-title">Operator B · Secondary On-Call Terminal</div>
-                <div class="operator-handle font-mono">oncall-carlos @ ws-gateway-02</div>
-              </div>
-              <span id="op-b-version-pill" class="badge badge-blue font-mono">OBSERVED: v2</span>
-            </div>
-
-            <div class="form-row">
-              <div class="form-field">
-                <label class="form-label" for="op-b-expected-version">
-                  <span>Expected Version (<span class="font-mono">int &gt;= 1</span>)</span>
-                </label>
-                <input id="op-b-expected-version" type="number" min="1" step="1" class="form-input font-mono" value="2" />
-                <div id="op-b-version-error" class="field-validation-msg"></div>
-              </div>
-
-              <div class="form-field">
-                <label class="form-label" for="op-b-status">
-                  <span>Lifecycle Status</span>
-                </label>
-                <select id="op-b-status" class="form-select font-mono">
-                  <option value="OPEN">OPEN</option>
-                  <option value="INVESTIGATING">INVESTIGATING</option>
-                  <option value="MITIGATED">MITIGATED</option>
-                  <option value="RESOLVED">RESOLVED</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-field">
-                <label class="form-label" for="op-b-severity">
-                  <span>Severity Tier</span>
-                </label>
-                <select id="op-b-severity" class="form-select font-mono">
-                  <option value="SEV1">SEV1 (15m SLA)</option>
-                  <option value="SEV2">SEV2 (60m SLA)</option>
-                  <option value="SEV3">SEV3 (240m SLA)</option>
-                  <option value="SEV4">SEV4 (1440m SLA)</option>
-                </select>
-              </div>
-
-              <div class="form-field">
-                <label class="form-label" for="op-b-commander">
-                  <span>Incident Commander</span>
-                </label>
-                <input id="op-b-commander" type="text" class="form-input font-mono" value="sre.valeria" />
-              </div>
-            </div>
-
-            <div class="form-field">
-              <label class="form-label" for="op-b-summary">
-                <span>Mitigation &amp; Telemetry Summary</span>
-              </label>
-              <textarea id="op-b-summary" class="form-textarea"></textarea>
-            </div>
-
-            <div class="operator-footer">
-              <span id="op-b-http-status" class="http-status-readout badge badge-neutral font-mono">READY · ws-gateway-02</span>
-              <div class="window-actions">
-                <button id="btn-op-b-sync" type="button" class="btn font-mono">Sync v</button>
-                <button id="btn-op-b-commit" type="button" class="btn btn-primary">Commit PATCH (Op B)</button>
-              </div>
-            </div>
-          </div>
+    <!-- Task Detail Drawer -->
+    <div class="pf-backdrop" id="pf-task-backdrop" data-open="false" role="dialog" aria-modal="true">
+      <div class="pf-drawer">
+        <div class="pf-drawer-head">
+          <h2 id="pf-task-drawer-title">Detalle de tarea</h2>
+          <button type="button" class="pf-btn-ghost" id="pf-task-close">Cerrar</button>
         </div>
-
-        <!-- Timeline Comments + Lifecycle State Machine Rules -->
-        <div class="incident-context-grid">
-          <div class="comments-box">
-            <div class="telemetry-label">
-              <span>Incident Collaboration Timeline (<span class="font-mono">POST /api/v1/incidents/{id}/comments</span>)</span>
-              <span id="comments-count-badge" class="badge badge-neutral font-mono">0 NOTES</span>
-            </div>
-            <div id="incident-comments-list" class="comment-list"></div>
-            <div class="comment-composer">
-              <select id="comment-author-select" class="filter-select font-mono" aria-label="Select comment author">
-                <option value="sre-daniela">sre-daniela @ ws-gateway-01</option>
-                <option value="oncall-carlos">oncall-carlos @ ws-gateway-02</option>
-              </select>
-              <input id="comment-body-input" type="text" class="filter-input" placeholder="Append operational telemetry note to incident timeline..." aria-label="Comment body" />
-              <button id="btn-add-comment" type="button" class="btn btn-primary">Post Note</button>
-            </div>
-          </div>
-
-          <div class="state-rules-box">
-            <div class="telemetry-label">
-              <span>Domain Lifecycle State Machine Invariants</span>
-              <span class="badge badge-neutral font-mono">HTTP 422 ON VIOLATION</span>
-            </div>
-            <table class="transition-table font-mono">
-              <thead>
-                <tr>
-                  <th>Current</th>
-                  <th>Allowed Next States</th>
-                  <th>Forbidden</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>OPEN</td>
-                  <td>INVESTIGATING, MITIGATED, RESOLVED</td>
-                  <td>—</td>
-                </tr>
-                <tr>
-                  <td>INVESTIGATING</td>
-                  <td>MITIGATED, RESOLVED</td>
-                  <td>OPEN</td>
-                </tr>
-                <tr>
-                  <td>MITIGATED</td>
-                  <td>INVESTIGATING, RESOLVED</td>
-                  <td>OPEN</td>
-                </tr>
-                <tr>
-                  <td>RESOLVED</td>
-                  <td>INVESTIGATING (Reopen)</td>
-                  <td>OPEN, MITIGATED</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <div class="pf-drawer-body" id="pf-task-body"></div>
       </div>
-    </section>
+    </div>
 
-    <!-- Bottom Dual Bento: Multi-Node Redis Pub/Sub Backplane + Immutable Audit Ledger -->
-    <section class="bottom-bento reveal-block">
-      <!-- Multi-Node Redis Pub/Sub Event Bus Inspector -->
-      <div class="bento-panel">
-        <div class="panel-header">
-          <div class="panel-title-group">
-            <h2 class="panel-title">
-              <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="18" cy="5" r="3"></circle>
-                <circle cx="6" cy="12" r="3"></circle>
-                <circle cx="18" cy="19" r="3"></circle>
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-              </svg>
-              <span>Multi-Node Redis Pub/Sub Event Bus Inspector</span>
-            </h2>
-            <p class="panel-subtitle">
-              Live <span class="font-mono">RealtimeEnvelope</span> fan-out across
-              <span class="font-mono">ws-gateway-01</span> &amp; <span class="font-mono">ws-gateway-02</span>
-            </p>
-          </div>
-          <select id="filter-event-type" class="filter-select font-mono" aria-label="Filter backplane events">
-            <option value="ALL">EVENTS: ALL</option>
-            <option value="incident.updated">incident.updated</option>
-            <option value="incident.conflict_rejected">incident.conflict_rejected</option>
-            <option value="comment.added">comment.added</option>
-          </select>
+    <!-- New Task Drawer -->
+    <div class="pf-backdrop" id="pf-new-backdrop" data-open="false" role="dialog" aria-modal="true">
+      <div class="pf-drawer">
+        <div class="pf-drawer-head">
+          <h2>Nueva tarea del equipo</h2>
+          <button type="button" class="pf-btn-ghost" id="pf-new-close">Cerrar</button>
         </div>
-        <div id="backplane-event-list" class="event-stream-list" aria-live="polite"></div>
+        <div class="pf-drawer-body" id="pf-new-body"></div>
       </div>
+    </div>
 
-      <!-- Immutable Append-Only Audit Ledger Table -->
-      <div class="bento-panel">
-        <div class="panel-header">
-          <div class="panel-title-group">
-            <h2 class="panel-title">
-              <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-              </svg>
-              <span>Immutable Append-Only Audit Ledger</span>
-            </h2>
-            <p class="panel-subtitle">
-              Cryptographically ordered <span class="font-mono">IncidentAuditRecord</span> transitions &amp; field-level diffs
-            </p>
-          </div>
-          <span id="ledger-total-badge" class="badge badge-neutral font-mono">0 RECORDS</span>
+    <!-- Layer 2 Architecture Drawer -->
+    <div class="pf-backdrop" id="pf-arch-backdrop" data-open="false" role="dialog" aria-modal="true">
+      <div class="pf-drawer">
+        <div class="pf-drawer-head">
+          <h2>Arquitectura Realtime &amp; OCC</h2>
+          <button type="button" class="pf-btn-ghost" id="pf-arch-close">Cerrar</button>
         </div>
-        <div class="table-scroll">
-          <table class="ledger-table">
-            <thead>
-              <tr>
-                <th>Audit ID</th>
-                <th>Incident</th>
-                <th>Ver</th>
-                <th>Actor &amp; Action</th>
-                <th>Field Diffs (from -&gt; to)</th>
-                <th>Timestamp (UTC)</th>
-              </tr>
-            </thead>
-            <tbody id="audit-ledger-tbody"></tbody>
-          </table>
-        </div>
+        <div class="pf-drawer-body" id="pf-arch-body"></div>
       </div>
-    </section>
-  </div>
+    </div>
 
-  <script>
-    (function () {
-      "use strict";
+    <div class="pf-toast" id="pf-toast" role="status" aria-live="polite"></div>
 
-      /**
-       * Strict Numeric & Domain Validation Helpers (.agents/rules/ui-strict-types.md)
-       * Every numeric metric, version, and SLA countdown is explicitly validated against NaN, Infinity, or negative bounds.
-       */
-      function parsePositiveIntegerVersion(rawValue) {
-        if (typeof rawValue === "number") {
-          if (!Number.isFinite(rawValue) || !Number.isInteger(rawValue) || rawValue < 1) {
-            return { valid: false, value: 1, error: "Version must be an integer >= 1." };
-          }
-          return { valid: true, value: rawValue, error: "" };
-        }
-        const trimmed = String(rawValue === null || rawValue === undefined ? "" : rawValue).trim();
-        if (!/^[1-9]\d*$/.test(trimmed)) {
-          return { valid: false, value: 1, error: "Expected integer >= 1 (no decimals/NaN)." };
-        }
-        const parsed = Number.parseInt(trimmed, 10);
-        if (!Number.isSafeInteger(parsed) || parsed < 1) {
-          return { valid: false, value: 1, error: "Version out of safe integer range." };
-        }
-        return { valid: true, value: parsed, error: "" };
-      }
+    <script>
+      (function () {
+        const state = {
+          tasks: [],
+          presence: [],
+          events: [],
+          audit: [],
+          activeTask: null,
+        };
 
-      function sanitizeNonNegativeNumber(val, fallback) {
-        const num = Number(val);
-        if (!Number.isFinite(num) || Number.isNaN(num) || num < 0) {
-          return fallback;
-        }
-        return num;
-      }
+        const els = {
+          presence: document.getElementById("pf-presence-bar"),
+          openList: document.getElementById("pf-list-open"),
+          progList: document.getElementById("pf-list-prog"),
+          doneList: document.getElementById("pf-list-done"),
+          openCount: document.getElementById("pf-count-open"),
+          progCount: document.getElementById("pf-count-prog"),
+          doneCount: document.getElementById("pf-count-done"),
+          conflictBanner: document.getElementById("pf-conflict-banner"),
+          conflictDetail: document.getElementById("pf-conflict-detail"),
+          taskBackdrop: document.getElementById("pf-task-backdrop"),
+          taskTitle: document.getElementById("pf-task-drawer-title"),
+          taskBody: document.getElementById("pf-task-body"),
+          newBackdrop: document.getElementById("pf-new-backdrop"),
+          newBody: document.getElementById("pf-new-body"),
+          archBackdrop: document.getElementById("pf-arch-backdrop"),
+          archBody: document.getElementById("pf-arch-body"),
+          toast: document.getElementById("pf-toast"),
+        };
 
-      /**
-       * Safe DOM Construction Helper (createElement / textContent / replaceChildren)
-       */
-      function createEl(tag, options) {
-        const el = document.createElement(tag);
-        if (!options) return el;
-        if (options.className) el.className = options.className;
-        if (options.text !== undefined && options.text !== null) {
-          el.textContent = String(options.text);
-        }
-        if (options.attrs) {
-          const keys = Object.keys(options.attrs);
-          for (let i = 0; i < keys.length; i++) {
-            const k = keys[i];
-            if (options.attrs[k] !== undefined && options.attrs[k] !== null) {
-              el.setAttribute(k, String(options.attrs[k]));
+        function el(tag, props, children) {
+          const node = document.createElement(tag);
+          if (props) {
+            for (const [k, v] of Object.entries(props)) {
+              if (k === "className") node.className = v;
+              else if (k === "textContent") node.textContent = v;
+              else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2).toLowerCase(), v);
+              else node.setAttribute(k, String(v));
             }
           }
-        }
-        return el;
-      }
-
-      /**
-       * Domain Constants: SLA Policy Targets & Valid State Machine Transitions
-       */
-      const SLA_TARGET_MINUTES = {
-        SEV1: 15,
-        SEV2: 60,
-        SEV3: 240,
-        SEV4: 1440
-      };
-
-      const VALID_STATUS_TRANSITIONS = {
-        OPEN: ["INVESTIGATING", "MITIGATED", "RESOLVED"],
-        INVESTIGATING: ["MITIGATED", "RESOLVED"],
-        MITIGATED: ["INVESTIGATING", "RESOLVED"],
-        RESOLVED: ["INVESTIGATING"]
-      };
-
-      const GATEWAY_NODES = ["ws-gateway-01", "ws-gateway-02"];
-
-      /**
-       * Canonical Seeded Incidents (Matching src/infrastructure/persistence/seed_incidents.py)
-       */
-      function buildCanonicalSeedState() {
-        const rawSeeds = [
-          {
-            incident_id: "INC-2026-101",
-            title: "Redis Pub/Sub Backplane Latency Spike",
-            service_name: "pulseflow-sync-backplane",
-            severity: "SEV1",
-            status: "INVESTIGATING",
-            commander: "sre.valeria",
-            summary: "P99 fan-out broadcast latency across WebSocket replica nodes exceeded 420ms due to client output buffer saturation on primary Redis Pub/Sub shard.",
-            version: 2,
-            elapsed_minutes: 7.6,
-            created_at: "2026-04-12T14:05:00+00:00",
-            updated_at: "2026-04-12T14:18:00+00:00",
-            comments: [
-              {
-                comment_id: "CMT-2026-101-A",
-                incident_id: "INC-2026-101",
-                author: "sre.valeria",
-                body: "Identified slow consumer on ws-gateway-03; draining active SSE/WS channels and scaling pubsub shard replicas.",
-                created_at: "2026-04-12T14:12:00+00:00"
-              },
-              {
-                comment_id: "CMT-2026-101-B",
-                incident_id: "INC-2026-101",
-                author: "netops.carlos",
-                body: "Applied client-output-buffer-limit pubsub 256mb 64mb 15s; p99 fan-out dropping toward 38ms.",
-                created_at: "2026-04-12T14:18:00+00:00"
-              }
-            ]
-          },
-          {
-            incident_id: "INC-2026-102",
-            title: "pgvector HNSW Index Memory Saturation",
-            service_name: "cortex-rag-retriever",
-            severity: "SEV2",
-            status: "MITIGATED",
-            commander: "mlops.elena",
-            summary: "HNSW ef_search=128 concurrent hybrid queries triggered shared_buffers eviction and increased disk IOPS by 3.4x on read replica pg-vector-02.",
-            version: 2,
-            elapsed_minutes: 34.0,
-            created_at: "2026-04-12T12:30:00+00:00",
-            updated_at: "2026-04-12T13:15:00+00:00",
-            comments: [
-              {
-                comment_id: "CMT-2026-102-A",
-                incident_id: "INC-2026-102",
-                author: "mlops.elena",
-                body: "Tuned hnsw.ef_search to 64 via session pooler and routed bulk ingestion jobs to maintenance window.",
-                created_at: "2026-04-12T13:15:00+00:00"
-              }
-            ]
-          },
-          {
-            incident_id: "INC-2026-103",
-            title: "Kafka Outbox Relay Partition Stall",
-            service_name: "ledgercore-outbox-relay",
-            severity: "SEV1",
-            status: "OPEN",
-            commander: "core.daniel",
-            summary: "Transactional Outbox CDC worker stalled on partition 7 after schema registry timeout; 1,420 settlement events queued in PostgreSQL outbox_events table.",
-            version: 1,
-            elapsed_minutes: 9.2,
-            created_at: "2026-04-12T14:22:00+00:00",
-            updated_at: "2026-04-12T14:25:00+00:00",
-            comments: [
-              {
-                comment_id: "CMT-2026-103-A",
-                incident_id: "INC-2026-103",
-                author: "core.daniel",
-                body: "Verifying double-entry ledger idempotency locks before restarting outbox consumer group.",
-                created_at: "2026-04-12T14:25:00+00:00"
-              }
-            ]
-          },
-          {
-            incident_id: "INC-2026-104",
-            title: "OTel Collector Trace Export Backpressure",
-            service_name: "cloudops-otel-gateway",
-            severity: "SEV3",
-            status: "INVESTIGATING",
-            commander: "platform.marco",
-            summary: "OpenTelemetry collector batch processor queue reached 88% capacity during canary rollout telemetry burst in cluster us-east-prod-01.",
-            version: 2,
-            elapsed_minutes: 52.0,
-            created_at: "2026-04-12T11:10:00+00:00",
-            updated_at: "2026-04-12T11:45:00+00:00",
-            comments: [
-              {
-                comment_id: "CMT-2026-104-A",
-                incident_id: "INC-2026-104",
-                author: "platform.marco",
-                body: "Enabled tail-based sampling at 15% for healthy HTTP 200 spans while retaining 100% error/latency traces.",
-                created_at: "2026-04-12T11:45:00+00:00"
-              }
-            ]
-          },
-          {
-            incident_id: "INC-2026-105",
-            title: "Mobile SQLite Offline Sync Conflict",
-            service_name: "fieldnotes-sync-gateway",
-            severity: "SEV4",
-            status: "RESOLVED",
-            commander: "mobile.sofia",
-            summary: "Field inspection devices reconnecting after 18h offline window encountered vector clock divergence on shared attachment manifests.",
-            version: 2,
-            elapsed_minutes: 100.0,
-            created_at: "2026-04-12T08:00:00+00:00",
-            updated_at: "2026-04-12T09:40:00+00:00",
-            comments: [
-              {
-                comment_id: "CMT-2026-105-A",
-                incident_id: "INC-2026-105",
-                author: "mobile.sofia",
-                body: "Deterministic LWW-Element-Set merge resolver deployed and verified against 420 queued field mutation logs.",
-                created_at: "2026-04-12T09:40:00+00:00"
-              }
-            ]
-          }
-        ];
-
-        const auditLedger = [
-          {
-            audit_id: "AUD-2026-0001",
-            incident_id: "INC-2026-101",
-            version: 1,
-            actor: "sre.valeria",
-            action: "INCIDENT_CREATED",
-            changes: { status: { from: null, to: "OPEN" }, severity: { from: null, to: "SEV1" } },
-            created_at: "2026-04-12T14:05:00+00:00"
-          },
-          {
-            audit_id: "AUD-2026-0002",
-            incident_id: "INC-2026-101",
-            version: 2,
-            actor: "sre.valeria",
-            action: "STATUS_TRANSITION",
-            changes: { status: { from: "OPEN", to: "INVESTIGATING" } },
-            created_at: "2026-04-12T14:18:00+00:00"
-          },
-          {
-            audit_id: "AUD-2026-0003",
-            incident_id: "INC-2026-102",
-            version: 2,
-            actor: "mlops.elena",
-            action: "STATUS_TRANSITION",
-            changes: { status: { from: "OPEN", to: "MITIGATED" } },
-            created_at: "2026-04-12T13:15:00+00:00"
-          },
-          {
-            audit_id: "AUD-2026-0004",
-            incident_id: "INC-2026-103",
-            version: 1,
-            actor: "core.daniel",
-            action: "INCIDENT_CREATED",
-            changes: { status: { from: null, to: "OPEN" }, severity: { from: null, to: "SEV1" } },
-            created_at: "2026-04-12T14:22:00+00:00"
-          },
-          {
-            audit_id: "AUD-2026-0005",
-            incident_id: "INC-2026-104",
-            version: 2,
-            actor: "platform.marco",
-            action: "STATUS_TRANSITION",
-            changes: { status: { from: "OPEN", to: "INVESTIGATING" } },
-            created_at: "2026-04-12T11:45:00+00:00"
-          },
-          {
-            audit_id: "AUD-2026-0006",
-            incident_id: "INC-2026-105",
-            version: 2,
-            actor: "mobile.sofia",
-            action: "STATUS_TRANSITION",
-            changes: { status: { from: "OPEN", to: "RESOLVED" } },
-            created_at: "2026-04-12T09:40:00+00:00"
-          }
-        ];
-
-        const backplaneEvents = [
-          {
-            event_id: "evt-901a4f10b2c1",
-            channel: "incidents.realtime",
-            event_type: "incident.updated",
-            incident_id: "INC-2026-101",
-            version: 2,
-            origin_node: "ws-gateway-01",
-            actor: "sre.valeria",
-            fanout_nodes: ["ws-gateway-01", "ws-gateway-02"],
-            payload: { diff: { status: { from: "OPEN", to: "INVESTIGATING" } } },
-            published_at: "2026-04-12T14:18:00+00:00"
-          },
-          {
-            event_id: "evt-902b7d31e4a8",
-            channel: "incidents.realtime",
-            event_type: "comment.added",
-            incident_id: "INC-2026-101",
-            version: 2,
-            origin_node: "ws-gateway-02",
-            actor: "netops.carlos",
-            fanout_nodes: ["ws-gateway-01", "ws-gateway-02"],
-            payload: { comment_id: "CMT-2026-101-B", body: "Applied client-output-buffer-limit pubsub 256mb 64mb 15s; p99 fan-out dropping toward 38ms." },
-            published_at: "2026-04-12T14:18:05+00:00"
-          },
-          {
-            event_id: "evt-903c8e55f1d2",
-            channel: "incidents.realtime",
-            event_type: "incident.updated",
-            incident_id: "INC-2026-102",
-            version: 2,
-            origin_node: "ws-gateway-01",
-            actor: "mlops.elena",
-            fanout_nodes: ["ws-gateway-01", "ws-gateway-02"],
-            payload: { diff: { status: { from: "OPEN", to: "MITIGATED" } } },
-            published_at: "2026-04-12T13:15:00+00:00"
-          }
-        ];
-
-        return {
-          incidents: rawSeeds,
-          auditLedger: auditLedger,
-          backplaneEvents: backplaneEvents
-        };
-      }
-
-      /**
-       * Application State Store
-       */
-      const seedData = buildCanonicalSeedState();
-      const state = {
-        mode: "STANDALONE", // "ONLINE" or "STANDALONE"
-        apiBaseUrl: "http://127.0.0.1:8095",
-        incidents: seedData.incidents,
-        auditLedger: seedData.auditLedger,
-        backplaneEvents: seedData.backplaneEvents,
-        selectedIncidentId: "INC-2026-101",
-        occConflictCount: 0,
-        lastConflictContext: null,
-        auditSeq: 7,
-        eventSeq: 100
-      };
-
-      function evaluateSla(incident) {
-        const target = sanitizeNonNegativeNumber(SLA_TARGET_MINUTES[incident.severity], 60);
-        const elapsed = sanitizeNonNegativeNumber(incident.elapsed_minutes || 7.6, 0);
-        const remaining = Number((target - elapsed).toFixed(2));
-        const breached = elapsed > target && incident.status !== "RESOLVED";
-        return {
-          target_minutes: target,
-          elapsed_minutes: elapsed,
-          remaining_minutes: remaining,
-          breached: breached
-        };
-      }
-
-      function getSelectedIncident() {
-        for (let i = 0; i < state.incidents.length; i++) {
-          if (state.incidents[i].incident_id === state.selectedIncidentId) {
-            return state.incidents[i];
-          }
-        }
-        return state.incidents[0] || null;
-      }
-
-      /**
-       * Badge Styling Mappers
-       */
-      function getSeverityBadgeClass(severity) {
-        if (severity === "SEV1") return "badge badge-red font-mono";
-        if (severity === "SEV2") return "badge badge-yellow font-mono";
-        if (severity === "SEV3") return "badge badge-blue font-mono";
-        return "badge badge-green font-mono";
-      }
-
-      function getStatusBadgeClass(status) {
-        if (status === "OPEN") return "badge badge-red font-mono";
-        if (status === "INVESTIGATING") return "badge badge-yellow font-mono";
-        if (status === "MITIGATED") return "badge badge-blue font-mono";
-        return "badge badge-green font-mono";
-      }
-
-      function getEventBadgeClass(eventType) {
-        if (eventType === "incident.conflict_rejected") return "badge badge-red font-mono";
-        if (eventType === "comment.added") return "badge badge-yellow font-mono";
-        return "badge badge-blue font-mono";
-      }
-
-      /**
-       * API Connectivity Probe & Normalization
-       */
-      async function probeAndSyncApi() {
-        const originsToTry = [];
-        if (window.location.protocol === "http:" || window.location.protocol === "https:") {
-          originsToTry.push("");
-        }
-        originsToTry.push("http://127.0.0.1:8095");
-
-        for (let i = 0; i < originsToTry.length; i++) {
-          const base = originsToTry[i];
-          try {
-            const controller = new AbortController();
-            const timer = setTimeout(function () { controller.abort(); }, 1800);
-            const resp = await fetch(base + "/api/v1/incidents", {
-              method: "GET",
-              headers: { "Accept": "application/json" },
-              signal: controller.signal
-            });
-            clearTimeout(timer);
-            if (resp.ok) {
-              const data = await resp.json();
-              state.mode = "ONLINE";
-              state.apiBaseUrl = base;
-              normalizeIncidentsFromApi(data);
-              await fetchBackplaneAndAuditFromApi();
-              renderAll();
-              syncBothOperatorsToSelected();
-              return true;
+          if (Array.isArray(children)) {
+            for (const c of children) {
+              if (typeof c === "string") node.appendChild(document.createTextNode(c));
+              else if (c) node.appendChild(c);
             }
-          } catch (_err) {
-            // Fallback to next origin or standalone local engine
           }
+          return node;
         }
 
-        state.mode = "STANDALONE";
-        renderAll();
-        return false;
-      }
+        let toastTimer = null;
+        function showToast(msg) {
+          els.toast.textContent = msg;
+          els.toast.setAttribute("data-visible", "true");
+          if (toastTimer) clearTimeout(toastTimer);
+          toastTimer = setTimeout(function () { els.toast.setAttribute("data-visible", "false"); }, 3500);
+        }
 
-      function normalizeIncidentsFromApi(payload) {
-        const list = Array.isArray(payload)
-          ? payload
-          : (payload && Array.isArray(payload.incidents) ? payload.incidents : []);
-        if (!list.length) return;
+        function priorityBadge(sev) {
+          if (sev === "SEV1") return { label: "Alta", cls: "pf-priority-badge pf-priority-high" };
+          if (sev === "SEV2") return { label: "Media", cls: "pf-priority-badge pf-priority-med" };
+          return { label: "Normal", cls: "pf-priority-badge pf-priority-norm" };
+        }
 
-        state.incidents = list.map(function (item, idx) {
-          const existing = state.incidents.find(function (inc) {
-            return inc.incident_id === item.incident_id;
-          });
-          const versionCheck = parsePositiveIntegerVersion(item.version);
-          return {
-            incident_id: String(item.incident_id || "INC-2026-10" + (idx + 1)),
-            title: String(item.title || "Untitled Incident"),
-            service_name: String(item.service_name || "core-service"),
-            severity: String(item.severity || "SEV2").toUpperCase(),
-            status: String(item.status || "OPEN").toUpperCase(),
-            commander: String(item.commander || "sre.oncall"),
-            summary: String(item.summary || ""),
-            version: versionCheck.valid ? versionCheck.value : 1,
-            elapsed_minutes: item.sla && typeof item.sla.elapsed_minutes === "number"
-              ? sanitizeNonNegativeNumber(item.sla.elapsed_minutes, 8.0)
-              : (existing ? existing.elapsed_minutes : 8.0),
-            created_at: String(item.created_at || new Date().toISOString()),
-            updated_at: String(item.updated_at || new Date().toISOString()),
-            comments: Array.isArray(item.comments)
-              ? item.comments
-              : (existing && Array.isArray(existing.comments) ? existing.comments : [])
-          };
-        });
-      }
-
-      async function fetchBackplaneAndAuditFromApi() {
-        if (state.mode !== "ONLINE") return;
-        try {
-          const [evResp, audResp] = await Promise.all([
-            fetch(state.apiBaseUrl + "/api/v1/events/backplane"),
-            fetch(state.apiBaseUrl + "/api/v1/audit/ledger")
+        async function loadAll() {
+          const [incRes, presRes] = await Promise.all([
+            fetch("/api/v1/incidents"),
+            fetch("/api/v1/presence"),
           ]);
-          if (evResp.ok) {
-            const evData = await evResp.json();
-            const rawEvents = Array.isArray(evData)
-              ? evData
-              : (evData.events || evData.envelopes || []);
-            if (Array.isArray(rawEvents) && rawEvents.length > 0) {
-              state.backplaneEvents = rawEvents.map(function (ev) {
-                const vCheck = parsePositiveIntegerVersion(ev.version);
-                return {
-                  event_id: String(ev.event_id || "evt-api"),
-                  channel: String(ev.channel || "incidents.realtime"),
-                  event_type: String(ev.event_type || "incident.updated"),
-                  incident_id: String(ev.incident_id || "INC-2026-101"),
-                  version: vCheck.valid ? vCheck.value : 1,
-                  origin_node: String(ev.origin_node || "ws-gateway-01"),
-                  actor: String(ev.actor || "system"),
-                  fanout_nodes: Array.isArray(ev.fanout_nodes) ? ev.fanout_nodes : GATEWAY_NODES,
-                  payload: ev.payload && typeof ev.payload === "object" ? ev.payload : {},
-                  published_at: String(ev.published_at || new Date().toISOString())
-                };
-              });
-            }
+          const incData = await incRes.json();
+          const presData = await presRes.json();
+          state.tasks = incData.incidents || [];
+          state.presence = presData.presence || [];
+          renderPresence();
+          renderBoard();
+        }
+
+        async function loadArchitectureTelemetry() {
+          const [evRes, audRes] = await Promise.all([
+            fetch("/api/v1/events/backplane"),
+            fetch("/api/v1/audit/ledger"),
+          ]);
+          const evData = await evRes.json();
+          const audData = await audRes.json();
+          state.events = evData.events || [];
+          state.audit = audData.audit_entries || audData.entries || [];
+          renderArchitecture();
+        }
+
+        function renderPresence() {
+          const pills = state.presence.slice(0, 4).map(function (p) {
+            return el("span", { className: "pf-avatar-pill" }, [
+              el("span", { className: "pf-dot-live" }),
+              el("span", { textContent: p.operator_id }),
+            ]);
+          });
+          if (pills.length === 0) {
+            pills.push(el("span", { className: "pf-avatar-pill" }, [el("span", { className: "pf-dot-live" }), el("span", { textContent: "Equipo conectado" })]));
           }
-          if (audResp.ok) {
-            const audData = await audResp.json();
-            const rawLedger = Array.isArray(audData)
-              ? audData
-              : (audData.audit_records || audData.ledger || audData.records || []);
-            if (Array.isArray(rawLedger) && rawLedger.length > 0) {
-              state.auditLedger = rawLedger.map(function (rec) {
-                let parsedChanges = {};
-                if (rec.changes && typeof rec.changes === "object") {
-                  parsedChanges = rec.changes;
-                } else if (typeof rec.changes_json === "string") {
-                  try {
-                    parsedChanges = JSON.parse(rec.changes_json);
-                  } catch (_e) {
-                    parsedChanges = { raw: { from: "", to: rec.changes_json } };
-                  }
-                }
-                const vCheck = parsePositiveIntegerVersion(rec.version);
-                return {
-                  audit_id: String(rec.audit_id || "AUD-API"),
-                  incident_id: String(rec.incident_id || "INC-2026-101"),
-                  version: vCheck.valid ? vCheck.value : 1,
-                  actor: String(rec.actor || "system"),
-                  action: String(rec.action || "UPDATE"),
-                  changes: parsedChanges,
-                  created_at: String(rec.created_at || new Date().toISOString())
-                };
-              });
-            }
+          els.presence.replaceChildren.apply(els.presence, pills);
+        }
+
+        async function moveTask(task, targetStatus) {
+          const resp = await fetch("/api/v1/incidents/" + encodeURIComponent(task.incident_id), {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              expected_version: task.version,
+              status: targetStatus,
+              actor: "tú (tablero)",
+              gateway_node: "ws-gateway-01",
+            }),
+          });
+          const data = await resp.json();
+          if (resp.status === 409) {
+            els.conflictDetail.textContent =
+              "Tu navegador tenía versión " + data.expected_version + ", pero el tablero ya avanzó a versión " + data.actual_version + ".";
+            els.conflictBanner.setAttribute("data-visible", "true");
+            return;
           }
-        } catch (_err) {
-          // Keep local state if auxiliary endpoint fails
-        }
-      }
-
-      /**
-       * Local Deterministic Domain Engine (Fallback & Mirror)
-       */
-      function applyLocalIncidentPatch(incidentId, patchRequest) {
-        const target = state.incidents.find(function (inc) {
-          return inc.incident_id === incidentId;
-        });
-        if (!target) {
-          return {
-            ok: false,
-            httpStatus: 404,
-            code: "ERR-404-NOT-FOUND",
-            message: "Incident " + incidentId + " not found."
-          };
-        }
-
-        const verValidation = parsePositiveIntegerVersion(patchRequest.expected_version);
-        if (!verValidation.valid) {
-          return {
-            ok: false,
-            httpStatus: 422,
-            code: "ERR-422-INVALID-VERSION",
-            message: verValidation.error
-          };
-        }
-
-        const expectedVersion = verValidation.value;
-        const actualVersion = target.version;
-        const nowIso = new Date().toISOString();
-
-        // Optimistic Concurrency Control Check
-        if (expectedVersion !== actualVersion) {
-          state.occConflictCount += 1;
-          state.eventSeq += 1;
-          const conflictEnvelope = {
-            event_id: "evt-409-" + state.eventSeq,
-            channel: "incidents.realtime",
-            event_type: "incident.conflict_rejected",
-            incident_id: target.incident_id,
-            version: actualVersion,
-            origin_node: patchRequest.origin_node,
-            actor: patchRequest.actor,
-            fanout_nodes: GATEWAY_NODES.slice(),
-            payload: {
-              code: "ERR-409-OPTIMISTIC-LOCK",
-              expected_version: expectedVersion,
-              actual_version: actualVersion
-            },
-            published_at: nowIso
-          };
-          state.backplaneEvents.unshift(conflictEnvelope);
-
-          return {
-            ok: false,
-            httpStatus: 409,
-            code: "ERR-409-OPTIMISTIC-LOCK",
-            incident_id: target.incident_id,
-            expected_version: expectedVersion,
-            actual_version: actualVersion,
-            actor: patchRequest.actor,
-            origin_node: patchRequest.origin_node,
-            message: "[ERR-409-OPTIMISTIC-LOCK] Optimistic concurrency conflict for incident '" +
-              target.incident_id + "': expected version " + expectedVersion +
-              ", actual version " + actualVersion + "."
-          };
-        }
-
-        // Lifecycle State Machine Check
-        const nextStatus = patchRequest.status ? String(patchRequest.status).toUpperCase() : target.status;
-        if (nextStatus !== target.status) {
-          const allowed = VALID_STATUS_TRANSITIONS[target.status] || [];
-          if (allowed.indexOf(nextStatus) === -1) {
-            return {
-              ok: false,
-              httpStatus: 422,
-              code: "ERR-422-INVALID-STATE-TRANSITION",
-              message: "Cannot transition incident '" + target.incident_id + "' from '" +
-                target.status + "' to '" + nextStatus + "'."
-            };
+          if (!resp.ok) {
+            showToast(data.message || "No se pudo mover la tarjeta.");
+            return;
           }
+          els.conflictBanner.setAttribute("data-visible", "false");
+          showToast("Tarjeta movida y sincronizada con el equipo.");
+          await loadAll();
         }
 
-        const nextSeverity = patchRequest.severity ? String(patchRequest.severity).toUpperCase() : target.severity;
-        const nextCommander = patchRequest.commander ? String(patchRequest.commander).trim() : target.commander;
-        const nextSummary = patchRequest.summary ? String(patchRequest.summary).trim() : target.summary;
+        function buildTaskCard(task) {
+          const p = priorityBadge(task.severity);
+          const nextAction =
+            task.status === "OPEN"
+              ? { label: "Iniciar", target: "INVESTIGATING" }
+              : task.status === "RESOLVED"
+                ? { label: "Reabrir", target: "INVESTIGATING" }
+                : { label: "Completar", target: "RESOLVED" };
 
-        if (!nextCommander || !nextSummary) {
-          return {
-            ok: false,
-            httpStatus: 422,
-            code: "ERR-422-VALIDATION",
-            message: "Commander and mitigation summary must be non-empty strings."
-          };
+          return el("article", { className: "pf-card" }, [
+            el("div", { className: "pf-card-top" }, [
+              el("span", { className: p.cls, textContent: p.label }),
+              el("span", { className: "pf-mono", style: "font-size:11.5px;color:var(--text-slate);", textContent: "v" + task.version }),
+            ]),
+            el("h3", { className: "pf-card-title", textContent: task.title }),
+            el("p", { className: "pf-card-summary", textContent: task.summary }),
+            el("div", { className: "pf-card-foot" }, [
+              el("span", { textContent: task.commander || "Equipo" }),
+              el("div", { style: "display:flex;gap:6px;" }, [
+                el("button", { type: "button", className: "pf-mini-btn", textContent: "Abrir", onClick: function () { openTaskDrawer(task); } }),
+                el("button", { type: "button", className: "pf-mini-btn", textContent: nextAction.label, onClick: function () { moveTask(task, nextAction.target); } }),
+              ]),
+            ]),
+          ]);
         }
 
-        const diff = {};
-        if (nextStatus !== target.status) {
-          diff.status = { from: target.status, to: nextStatus };
-        }
-        if (nextSeverity !== target.severity) {
-          diff.severity = { from: target.severity, to: nextSeverity };
-        }
-        if (nextCommander !== target.commander) {
-          diff.commander = { from: target.commander, to: nextCommander };
-        }
-        if (nextSummary !== target.summary) {
-          diff.summary = { from: target.summary, to: nextSummary };
-        }
-        if (Object.keys(diff).length === 0) {
-          diff.touch = { from: "v" + target.version, to: "v" + (target.version + 1) };
+        function renderBoard() {
+          const open = state.tasks.filter(function (t) { return t.status === "OPEN"; });
+          const prog = state.tasks.filter(function (t) { return t.status === "INVESTIGATING" || t.status === "MITIGATING"; });
+          const done = state.tasks.filter(function (t) { return t.status === "RESOLVED"; });
+
+          els.openCount.textContent = String(open.length);
+          els.progCount.textContent = String(prog.length);
+          els.doneCount.textContent = String(done.length);
+
+          els.openList.replaceChildren.apply(els.openList, open.map(buildTaskCard));
+          els.progList.replaceChildren.apply(els.progList, prog.map(buildTaskCard));
+          els.doneList.replaceChildren.apply(els.doneList, done.map(buildTaskCard));
         }
 
-        target.status = nextStatus;
-        target.severity = nextSeverity;
-        target.commander = nextCommander;
-        target.summary = nextSummary;
-        target.version = actualVersion + 1;
-        target.updated_at = nowIso;
+        function openTaskDrawer(task) {
+          state.activeTask = task;
+          els.taskTitle.textContent = task.title;
+          const titleIn = el("input", { className: "pf-input", value: task.title });
+          const summaryIn = el("textarea", { className: "pf-input", style: "min-height:90px;", textContent: task.summary });
+          summaryIn.value = task.summary;
+          const commentIn = el("input", { className: "pf-input", placeholder: "Escribe una nota para el equipo..." });
 
-        state.auditSeq += 1;
-        const auditRecord = {
-          audit_id: "AUD-2026-00" + (state.auditSeq < 10 ? "0" + state.auditSeq : state.auditSeq),
-          incident_id: target.incident_id,
-          version: target.version,
-          actor: patchRequest.actor,
-          action: diff.status ? "STATUS_TRANSITION" : "INCIDENT_UPDATED",
-          changes: diff,
-          created_at: nowIso
-        };
-        state.auditLedger.unshift(auditRecord);
-
-        state.eventSeq += 1;
-        const envelope = {
-          event_id: "evt-200-" + state.eventSeq,
-          channel: "incidents.realtime",
-          event_type: "incident.updated",
-          incident_id: target.incident_id,
-          version: target.version,
-          origin_node: patchRequest.origin_node,
-          actor: patchRequest.actor,
-          fanout_nodes: GATEWAY_NODES.slice(),
-          payload: { diff: diff },
-          published_at: nowIso
-        };
-        state.backplaneEvents.unshift(envelope);
-
-        return {
-          ok: true,
-          httpStatus: 200,
-          incident: target,
-          auditRecord: auditRecord,
-          envelope: envelope
-        };
-      }
-
-      /**
-       * Unified PATCH Executor (Online API with Local Engine Fallback)
-       */
-      async function executeIncidentPatch(incidentId, patchRequest) {
-        if (state.mode === "ONLINE") {
-          try {
-            const resp = await fetch(state.apiBaseUrl + "/api/v1/incidents/" + encodeURIComponent(incidentId), {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json", "Accept": "application/json" },
-              body: JSON.stringify(patchRequest)
-            });
-            const body = await resp.json().catch(function () { return {}; });
-            if (resp.ok) {
-              await probeAndSyncApi();
-              const updatedInc = getSelectedIncident();
-              return {
-                ok: true,
-                httpStatus: resp.status,
-                incident: updatedInc
-              };
-            }
-            if (resp.status === 409) {
-              state.occConflictCount += 1;
-              await fetchBackplaneAndAuditFromApi();
-              const currentInc = getSelectedIncident();
-              const actualVer = body.actual_version || (currentInc ? currentInc.version : patchRequest.expected_version + 1);
-              return {
-                ok: false,
-                httpStatus: 409,
-                code: body.code || "ERR-409-OPTIMISTIC-LOCK",
-                incident_id: incidentId,
-                expected_version: patchRequest.expected_version,
-                actual_version: actualVer,
-                actor: patchRequest.actor,
-                origin_node: patchRequest.origin_node,
-                message: body.message || body.detail || (
-                  "[ERR-409-OPTIMISTIC-LOCK] Optimistic concurrency conflict for incident '" +
-                  incidentId + "': expected version " + patchRequest.expected_version +
-                  ", actual version " + actualVer + "."
-                )
-              };
-            }
-            return {
-              ok: false,
-              httpStatus: resp.status,
-              code: body.code || "ERR-" + resp.status,
-              message: body.message || body.detail || "Request rejected by domain invariant."
-            };
-          } catch (_networkErr) {
-            state.mode = "STANDALONE";
-          }
-        }
-        return applyLocalIncidentPatch(incidentId, patchRequest);
-      }
-
-      /**
-       * Unified Comment Publisher (POST /api/v1/incidents/{id}/comments)
-       */
-      async function executeAddComment(incidentId, author, originNode, bodyText) {
-        const cleanBody = String(bodyText || "").trim();
-        if (!cleanBody) return;
-
-        if (state.mode === "ONLINE") {
-          try {
-            const resp = await fetch(
-              state.apiBaseUrl + "/api/v1/incidents/" + encodeURIComponent(incidentId) + "/comments",
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          const saveBtn = el("button", {
+            type: "button",
+            className: "pf-btn-primary",
+            textContent: "Guardar cambios",
+            onClick: async function () {
+              const resp = await fetch("/api/v1/incidents/" + encodeURIComponent(task.incident_id), {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  author: author,
-                  body: cleanBody,
-                  origin_node: originNode
-                })
+                  expected_version: task.version,
+                  title: titleIn.value,
+                  summary: summaryIn.value,
+                  actor: "tú (editor)",
+                }),
+              });
+              const data = await resp.json();
+              if (resp.status === 409) {
+                els.conflictDetail.textContent = "Conflicto detectado: tu copia (v" + data.expected_version + ") quedó atrás de v" + data.actual_version + ".";
+                els.conflictBanner.setAttribute("data-visible", "true");
+                els.taskBackdrop.setAttribute("data-open", "false");
+                return;
               }
-            );
-            if (resp.ok) {
-              await probeAndSyncApi();
-              return;
-            }
-          } catch (_err) {
-            state.mode = "STANDALONE";
-          }
-        }
-
-        const inc = getSelectedIncident();
-        if (!inc) return;
-        const nowIso = new Date().toISOString();
-        state.eventSeq += 1;
-        const commentId = "CMT-" + inc.incident_id.slice(-3) + "-" + state.eventSeq;
-        const newComment = {
-          comment_id: commentId,
-          incident_id: inc.incident_id,
-          author: author,
-          body: cleanBody,
-          created_at: nowIso
-        };
-        inc.comments.push(newComment);
-
-        state.backplaneEvents.unshift({
-          event_id: "evt-cmt-" + state.eventSeq,
-          channel: "incidents.realtime",
-          event_type: "comment.added",
-          incident_id: inc.incident_id,
-          version: inc.version,
-          origin_node: originNode,
-          actor: author,
-          fanout_nodes: GATEWAY_NODES.slice(),
-          payload: { comment_id: commentId, body: cleanBody },
-          published_at: nowIso
-        });
-
-        renderAll();
-      }
-
-      /**
-       * UI Rendering Functions (Strictly Safe DOM Construction)
-       */
-      function renderConnectionModeBadge() {
-        const badge = document.getElementById("connection-mode-badge");
-        if (!badge) return;
-        if (state.mode === "ONLINE") {
-          badge.className = "badge badge-green font-mono";
-          badge.textContent = "ONLINE · API (127.0.0.1:8095)";
-        } else {
-          badge.className = "badge badge-yellow font-mono";
-          badge.textContent = "STANDALONE · LOCAL ENGINE";
-        }
-      }
-
-      function renderTelemetryStrip() {
-        const total = state.incidents.length;
-        let activeCount = 0;
-        let sev1Count = 0;
-        let sev2Count = 0;
-        let resolvedCount = 0;
-        let minSev1Rem = 15.0;
-        let minSev2Rem = 60.0;
-        let anyBreached = false;
-
-        for (let i = 0; i < state.incidents.length; i++) {
-          const inc = state.incidents[i];
-          const sla = evaluateSla(inc);
-          if (inc.status === "RESOLVED") {
-            resolvedCount += 1;
-          } else {
-            activeCount += 1;
-            if (sla.breached) anyBreached = true;
-          }
-          if (inc.severity === "SEV1") {
-            sev1Count += 1;
-            if (sla.remaining_minutes < minSev1Rem) minSev1Rem = sla.remaining_minutes;
-          } else if (inc.severity === "SEV2") {
-            sev2Count += 1;
-            if (sla.remaining_minutes < minSev2Rem) minSev2Rem = sla.remaining_minutes;
-          }
-        }
-
-        const activeEl = document.getElementById("metric-active-incidents");
-        const breakdownEl = document.getElementById("metric-active-breakdown");
-        const slaBadgeEl = document.getElementById("metric-sla-badge");
-        const slaCountdownEl = document.getElementById("metric-sla-countdown");
-        const occBadgeEl = document.getElementById("metric-occ-conflicts-badge");
-        const pubsubCountEl = document.getElementById("metric-pubsub-count");
-        const auditCountEl = document.getElementById("metric-audit-count");
-
-        if (activeEl) activeEl.textContent = activeCount + " / " + total;
-        if (breakdownEl) {
-          breakdownEl.textContent = "SEV1: " + sev1Count + " · SEV2: " + sev2Count + " · RESOLVED: " + resolvedCount;
-        }
-        if (slaBadgeEl) {
-          slaBadgeEl.className = anyBreached ? "badge badge-red font-mono" : "badge badge-green font-mono";
-          slaBadgeEl.textContent = anyBreached ? "SLA BREACH RISK" : "WITHIN SLA";
-        }
-        if (slaCountdownEl) {
-          slaCountdownEl.textContent = minSev1Rem.toFixed(1) + "m / " + minSev2Rem.toFixed(1) + "m";
-        }
-        if (occBadgeEl) {
-          occBadgeEl.className = state.occConflictCount > 0 ? "badge badge-red font-mono" : "badge badge-neutral font-mono";
-          occBadgeEl.textContent = state.occConflictCount + " HTTP 409 CONFLICTS";
-        }
-        if (pubsubCountEl) {
-          pubsubCountEl.textContent = state.backplaneEvents.length + " envelopes";
-        }
-        if (auditCountEl) {
-          auditCountEl.textContent = "Audit Ledger: " + state.auditLedger.length + " immutable records";
-        }
-      }
-
-      function renderIncidentMatrix() {
-        const listContainer = document.getElementById("incident-matrix-list");
-        const countBadge = document.getElementById("matrix-count-badge");
-        const sevFilter = document.getElementById("filter-severity").value;
-        const statusFilter = document.getElementById("filter-status").value;
-        const queryFilter = document.getElementById("filter-query").value.trim().toLowerCase();
-
-        const filtered = state.incidents.filter(function (inc) {
-          if (sevFilter !== "ALL" && inc.severity !== sevFilter) return false;
-          if (statusFilter !== "ALL" && inc.status !== statusFilter) return false;
-          if (queryFilter) {
-            const haystack = (
-              inc.incident_id + " " + inc.title + " " + inc.service_name + " " + inc.commander
-            ).toLowerCase();
-            if (haystack.indexOf(queryFilter) === -1) return false;
-          }
-          return true;
-        });
-
-        if (countBadge) {
-          countBadge.textContent = filtered.length + " / " + state.incidents.length + " ITEMS";
-        }
-
-        const nodes = [];
-        for (let i = 0; i < filtered.length; i++) {
-          const inc = filtered[i];
-          const sla = evaluateSla(inc);
-          const isSelected = inc.incident_id === state.selectedIncidentId;
-
-          const row = createEl("div", {
-            className: "incident-row" + (isSelected ? " active" : ""),
-            attrs: {
-              role: "option",
-              "aria-selected": isSelected ? "true" : "false",
-              "data-incident-id": inc.incident_id
-            }
+              if (resp.ok) {
+                showToast("Tarea guardada en versión v" + data.incident.version + ".");
+                els.taskBackdrop.setAttribute("data-open", "false");
+                await loadAll();
+              } else {
+                showToast(data.message || "Error al guardar.");
+              }
+            },
           });
 
-          const topBar = createEl("div", { className: "incident-row-top" });
-          const leftGroup = createEl("div", { className: "incident-id-group" });
-          leftGroup.appendChild(createEl("span", { className: "incident-id-code font-mono", text: inc.incident_id }));
-          leftGroup.appendChild(createEl("span", { className: getSeverityBadgeClass(inc.severity), text: inc.severity }));
-          leftGroup.appendChild(createEl("span", { className: getStatusBadgeClass(inc.status), text: inc.status }));
-
-          const versionBadge = createEl("span", {
-            className: "badge badge-blue font-mono",
-            text: "v" + inc.version
-          });
-          topBar.appendChild(leftGroup);
-          topBar.appendChild(versionBadge);
-
-          const titleEl = createEl("div", {
-            className: "incident-title",
-            text: inc.title
-          });
-
-          const metaBar = createEl("div", { className: "incident-row-meta font-mono" });
-          metaBar.appendChild(createEl("span", { text: inc.service_name + " · " + inc.commander }));
-          const slaSpan = createEl("span", {
-            className: sla.breached ? "badge badge-red font-mono" : "badge badge-neutral font-mono",
-            text: inc.status === "RESOLVED"
-              ? "SLA MET (" + sla.target_minutes + "m)"
-              : "SLA: " + sla.remaining_minutes.toFixed(1) + "m rem"
-          });
-          metaBar.appendChild(slaSpan);
-
-          row.appendChild(topBar);
-          row.appendChild(titleEl);
-          row.appendChild(metaBar);
-
-          row.addEventListener("click", function () {
-            state.selectedIncidentId = inc.incident_id;
-            hideConflictBanner();
-            syncBothOperatorsToSelected();
-            renderAll();
+          const commentBtn = el("button", {
+            type: "button",
+            className: "pf-btn-ghost",
+            textContent: "Publicar nota",
+            onClick: async function () {
+              if (!commentIn.value.trim()) return;
+              const resp = await fetch("/api/v1/incidents/" + encodeURIComponent(task.incident_id) + "/comments", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ author: "tú", body: commentIn.value.trim() }),
+              });
+              if (resp.ok) {
+                commentIn.value = "";
+                showToast("Nota publicada en el hilo colaborativo.");
+              }
+            },
           });
 
-          nodes.push(row);
+          els.taskBody.replaceChildren(
+            el("span", { className: "pf-mono", style: "font-size:12px;color:var(--text-slate);", textContent: task.incident_id + " · versión actual v" + task.version }),
+            el("label", { style: "font-size:12.5px;color:var(--text-slate);", textContent: "Título" }),
+            titleIn,
+            el("label", { style: "font-size:12.5px;color:var(--text-slate);", textContent: "Descripción" }),
+            summaryIn,
+            saveBtn,
+            el("div", { style: "border-top:1px solid var(--border-slate);padding-top:14px;display:flex;flex-direction:column;gap:8px;" }, [
+              el("label", { style: "font-size:12.5px;color:var(--text-slate);", textContent: "Agregar comentario rápido" }),
+              commentIn,
+              commentBtn,
+            ]),
+          );
+          els.taskBackdrop.setAttribute("data-open", "true");
         }
 
-        listContainer.replaceChildren.apply(listContainer, nodes);
-      }
+        function openNewTaskDrawer() {
+          const titleIn = el("input", { className: "pf-input", placeholder: "Ej. Revisar pantalla de bienvenida" });
+          const summaryIn = el("textarea", { className: "pf-input", style: "min-height:84px;", placeholder: "Contexto breve para tu equipo..." });
+          const sevSel = el("select", { className: "pf-input" }, [
+            el("option", { value: "SEV2", textContent: "Prioridad Media" }),
+            el("option", { value: "SEV1", textContent: "Prioridad Alta" }),
+            el("option", { value: "SEV3", textContent: "Prioridad Normal" }),
+          ]);
+          const createBtn = el("button", {
+            type: "button",
+            className: "pf-btn-primary",
+            textContent: "Crear tarjeta en tablero",
+            onClick: async function () {
+              const resp = await fetch("/api/v1/incidents", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  title: titleIn.value.trim() || "Nueva coordinación de equipo",
+                  service_name: "team-workspace",
+                  severity: sevSel.value,
+                  commander: "daniel.team",
+                  summary: summaryIn.value.trim() || "Tarea creada desde el tablero colaborativo en vivo.",
+                }),
+              });
+              const data = await resp.json();
+              if (resp.ok) {
+                els.newBackdrop.setAttribute("data-open", "false");
+                showToast("Tarjeta creada y emitida a todo el equipo.");
+                await loadAll();
+              } else {
+                showToast(data.message || "Revisa los campos de la tarea.");
+              }
+            },
+          });
 
-      function renderSelectedIncidentHeader() {
-        const inc = getSelectedIncident();
-        if (!inc) return;
-        const sla = evaluateSla(inc);
-
-        document.getElementById("wb-incident-id").textContent = inc.incident_id;
-        const sevEl = document.getElementById("wb-incident-severity");
-        sevEl.className = getSeverityBadgeClass(inc.severity);
-        sevEl.textContent = inc.severity;
-
-        const statEl = document.getElementById("wb-incident-status");
-        statEl.className = getStatusBadgeClass(inc.status);
-        statEl.textContent = inc.status;
-
-        document.getElementById("wb-incident-version").textContent = "v" + inc.version;
-
-        const slaEl = document.getElementById("wb-incident-sla");
-        slaEl.className = sla.breached ? "badge badge-red font-mono" : "badge badge-green font-mono";
-        slaEl.textContent = inc.status === "RESOLVED"
-          ? "SLA RESOLVED (" + sla.target_minutes + "m)"
-          : "SLA: " + sla.remaining_minutes.toFixed(2) + "m REM";
-
-        document.getElementById("wb-incident-title").textContent = inc.title;
-        document.getElementById("wb-incident-service").textContent = inc.service_name;
-        document.getElementById("wb-incident-commander").textContent = inc.commander;
-        document.getElementById("wb-incident-updated").textContent = inc.updated_at;
-
-        // Render Timeline Comments
-        const commentsContainer = document.getElementById("incident-comments-list");
-        const commentsBadge = document.getElementById("comments-count-badge");
-        const comments = Array.isArray(inc.comments) ? inc.comments : [];
-        if (commentsBadge) {
-          commentsBadge.textContent = comments.length + " NOTES";
+          els.newBody.replaceChildren(
+            el("label", { style: "font-size:12.5px;color:var(--text-slate);", textContent: "Título de la tarea" }),
+            titleIn,
+            el("label", { style: "font-size:12.5px;color:var(--text-slate);", textContent: "Prioridad" }),
+            sevSel,
+            el("label", { style: "font-size:12.5px;color:var(--text-slate);", textContent: "Notas iniciales" }),
+            summaryIn,
+            createBtn,
+          );
+          els.newBackdrop.setAttribute("data-open", "true");
         }
 
-        const commentNodes = [];
-        for (let i = 0; i < comments.length; i++) {
-          const c = comments[i];
-          const item = createEl("div", { className: "comment-item" });
-          const meta = createEl("div", { className: "comment-meta font-mono" });
-          meta.appendChild(createEl("span", { text: c.comment_id + " · " + c.author }));
-          meta.appendChild(createEl("span", { text: c.created_at }));
-          const body = createEl("div", { className: "comment-body", text: c.body });
-          item.appendChild(meta);
-          item.appendChild(body);
-          commentNodes.push(item);
+        function renderArchitecture() {
+          const evNodes = state.events.slice(0, 6).map(function (ev) {
+            return el("div", { className: "pf-box" }, [
+              el("div", { className: "pf-mono", style: "color:var(--accent-emerald);", textContent: ev.event_type + " · " + ev.origin_node }),
+              el("div", { style: "color:var(--text-slate);margin-top:4px;", textContent: (ev.incident_id || "") + " v" + (ev.version || 1) + " · " + (ev.actor || "") }),
+            ]);
+          });
+          els.archBody.replaceChildren.apply(
+            els.archBody,
+            [
+              el("div", { className: "pf-box", style: "border-color:rgba(16,185,129,0.4);" }, [
+                el("strong", { style: "display:block;margin-bottom:4px;", textContent: "Monolito Modular + Bloqueo Optimista CAS (HTTP 409)" }),
+                el("span", { style: "color:var(--text-slate);", textContent: "Cada edición exige expected_version para impedir que dos operadores sobreescriban trabajo ajeno, y replica el evento por Pub/Sub multi-nodo." }),
+              ]),
+              el("h3", { style: "font-family:var(--font-display);font-size:14px;margin:4px 0;", textContent: "Últimos eventos Pub/Sub multi-nodo" }),
+            ].concat(evNodes.length > 0 ? evNodes : [el("div", { className: "pf-box", textContent: "Mueve una tarjeta para ver eventos en vivo." })]),
+          );
         }
-        commentsContainer.replaceChildren.apply(commentsContainer, commentNodes);
-      }
 
-      function syncOperatorPanelToIncident(prefix, inc) {
-        if (!inc) return;
-        const verInput = document.getElementById("op-" + prefix + "-expected-version");
-        const verPill = document.getElementById("op-" + prefix + "-version-pill");
-        const statusSelect = document.getElementById("op-" + prefix + "-status");
-        const sevSelect = document.getElementById("op-" + prefix + "-severity");
-        const cmdInput = document.getElementById("op-" + prefix + "-commander");
-        const sumInput = document.getElementById("op-" + prefix + "-summary");
-        const errEl = document.getElementById("op-" + prefix + "-version-error");
-        const card = document.getElementById("operator-card-" + prefix);
-
-        verInput.value = String(inc.version);
-        verInput.classList.remove("input-invalid");
-        errEl.textContent = "";
-        verPill.className = "badge badge-blue font-mono";
-        verPill.textContent = "OBSERVED: v" + inc.version;
-        statusSelect.value = inc.status;
-        sevSelect.value = inc.severity;
-        cmdInput.value = inc.commander;
-        sumInput.value = inc.summary;
-        card.classList.remove("conflict-state", "success-state");
-      }
-
-      function syncBothOperatorsToSelected() {
-        const inc = getSelectedIncident();
-        if (!inc) return;
-        syncOperatorPanelToIncident("a", inc);
-        syncOperatorPanelToIncident("b", inc);
-        const statusA = document.getElementById("op-a-http-status");
-        const statusB = document.getElementById("op-b-http-status");
-        statusA.className = "http-status-readout badge badge-neutral font-mono";
-        statusA.textContent = "SYNCED v" + inc.version + " · ws-gateway-01";
-        statusB.className = "http-status-readout badge badge-neutral font-mono";
-        statusB.textContent = "SYNCED v" + inc.version + " · ws-gateway-02";
-      }
-
-      function showConflictBanner(conflictResult) {
-        state.lastConflictContext = conflictResult;
-        const panel = document.getElementById("conflict-diagnostic-panel");
-        document.getElementById("conflict-code-label").textContent = conflictResult.code || "ERR-409-OPTIMISTIC-LOCK";
-        document.getElementById("conflict-node-label").textContent = "REJECTED ON " + (conflictResult.origin_node || "ws-gateway-02");
-        document.getElementById("conflict-message-body").textContent = conflictResult.message;
-        document.getElementById("conflict-metric-id").textContent = conflictResult.incident_id;
-        document.getElementById("conflict-metric-actor").textContent = conflictResult.actor;
-        document.getElementById("conflict-metric-expected").textContent = "v" + conflictResult.expected_version;
-        document.getElementById("conflict-metric-actual").textContent = "v" + conflictResult.actual_version;
-        panel.classList.add("visible");
-      }
-
-      function hideConflictBanner() {
-        state.lastConflictContext = null;
-        const panel = document.getElementById("conflict-diagnostic-panel");
-        panel.classList.remove("visible");
-      }
-
-      function renderBackplaneEvents() {
-        const container = document.getElementById("backplane-event-list");
-        const filterVal = document.getElementById("filter-event-type").value;
-        const filtered = state.backplaneEvents.filter(function (ev) {
-          if (filterVal !== "ALL" && ev.event_type !== filterVal) return false;
-          return true;
-        });
-
-        const nodes = [];
-        for (let i = 0; i < filtered.length; i++) {
-          const ev = filtered[i];
-          const item = createEl("div", { className: "event-envelope-item" });
-
-          const top = createEl("div", { className: "event-envelope-top" });
-          const left = createEl("div", { className: "incident-id-group" });
-          left.appendChild(createEl("span", { className: getEventBadgeClass(ev.event_type), text: ev.event_type }));
-          left.appendChild(createEl("span", { className: "badge badge-neutral font-mono", text: ev.incident_id + " · v" + ev.version }));
-          top.appendChild(left);
-          top.appendChild(createEl("span", { className: "font-mono", text: ev.event_id }));
-
-          const routeRow = createEl("div", { className: "fanout-route font-mono" });
-          routeRow.appendChild(createEl("span", { text: "ORIGIN: " + ev.origin_node + " (" + ev.actor + ")" }));
-          routeRow.appendChild(createEl("span", { text: "->" }));
-          const targets = Array.isArray(ev.fanout_nodes) ? ev.fanout_nodes : GATEWAY_NODES;
-          for (let j = 0; j < targets.length; j++) {
-            routeRow.appendChild(createEl("span", { className: "badge badge-blue font-mono", text: "FANOUT: " + targets[j] }));
+        document.getElementById("pf-sim-conflict-btn").addEventListener("click", async function () {
+          if (state.tasks.length === 0) return;
+          const target = state.tasks[0];
+          const staleVersion = target.version;
+          // Teammate saves an edit first -> bumps version
+          await fetch("/api/v1/incidents/" + encodeURIComponent(target.incident_id), {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              expected_version: staleVersion,
+              summary: target.summary + " [Actualizado por Valeria]",
+              actor: "valeria (otro nodo)",
+              gateway_node: "ws-gateway-02",
+            }),
+          });
+          // Now you submit using your stale version -> real 409 OCC guard!
+          const staleResp = await fetch("/api/v1/incidents/" + encodeURIComponent(target.incident_id), {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              expected_version: staleVersion,
+              summary: "Edición simultánea local",
+              actor: "tú (ws-gateway-01)",
+              gateway_node: "ws-gateway-01",
+            }),
+          });
+          const staleData = await staleResp.json();
+          if (staleResp.status === 409) {
+            els.conflictDetail.textContent =
+              "Valeria guardó primero la versión v" + staleData.actual_version + " mientras tu copia seguía en v" + staleData.expected_version + ". Ningún cambio se perdió.";
+            els.conflictBanner.setAttribute("data-visible", "true");
+            showToast("Conflicto de edición detenido con éxito (HTTP 409).");
           }
-
-          const payloadPre = createEl("div", {
-            className: "payload-code font-mono",
-            text: JSON.stringify(ev.payload)
-          });
-
-          item.appendChild(top);
-          item.appendChild(routeRow);
-          item.appendChild(payloadPre);
-          nodes.push(item);
-        }
-
-        container.replaceChildren.apply(container, nodes);
-      }
-
-      function renderAuditLedger() {
-        const tbody = document.getElementById("audit-ledger-tbody");
-        const totalBadge = document.getElementById("ledger-total-badge");
-        if (totalBadge) {
-          totalBadge.textContent = state.auditLedger.length + " RECORDS";
-        }
-
-        const rows = [];
-        for (let i = 0; i < state.auditLedger.length; i++) {
-          const rec = state.auditLedger[i];
-          const tr = createEl("tr");
-
-          tr.appendChild(createEl("td", { className: "font-mono", text: rec.audit_id }));
-          tr.appendChild(createEl("td", { className: "font-mono", text: rec.incident_id }));
-
-          const verTd = createEl("td");
-          verTd.appendChild(createEl("span", { className: "badge badge-blue font-mono", text: "v" + rec.version }));
-          tr.appendChild(verTd);
-
-          const actorTd = createEl("td", { className: "font-mono" });
-          actorTd.appendChild(createEl("div", { text: rec.actor }));
-          actorTd.appendChild(createEl("span", { className: "badge badge-neutral font-mono", text: rec.action }));
-          tr.appendChild(actorTd);
-
-          const diffTd = createEl("td");
-          const chipList = createEl("div", { className: "diff-chip-list" });
-          const changesObj = rec.changes && typeof rec.changes === "object" ? rec.changes : {};
-          const fields = Object.keys(changesObj);
-          for (let k = 0; k < fields.length; k++) {
-            const fieldName = fields[k];
-            const entry = changesObj[fieldName] || {};
-            const fromStr = entry.from === null || entry.from === undefined ? "null" : String(entry.from);
-            const toStr = entry.to === null || entry.to === undefined ? "null" : String(entry.to);
-            chipList.appendChild(createEl("span", {
-              className: "diff-chip font-mono",
-              text: fieldName + ": " + fromStr + " -> " + toStr
-            }));
-          }
-          diffTd.appendChild(chipList);
-          tr.appendChild(diffTd);
-
-          tr.appendChild(createEl("td", { className: "font-mono", text: rec.created_at }));
-          rows.push(tr);
-        }
-
-        tbody.replaceChildren.apply(tbody, rows);
-      }
-
-      function renderAll() {
-        renderConnectionModeBadge();
-        renderTelemetryStrip();
-        renderIncidentMatrix();
-        renderSelectedIncidentHeader();
-        renderBackplaneEvents();
-        renderAuditLedger();
-      }
-
-      /**
-       * Operator Commit Flow (Operator A or Operator B)
-       */
-      async function handleOperatorCommit(prefix, actorHandle, gatewayNode) {
-        const inc = getSelectedIncident();
-        if (!inc) return;
-
-        const verInput = document.getElementById("op-" + prefix + "-expected-version");
-        const errEl = document.getElementById("op-" + prefix + "-version-error");
-        const statusSelect = document.getElementById("op-" + prefix + "-status");
-        const sevSelect = document.getElementById("op-" + prefix + "-severity");
-        const cmdInput = document.getElementById("op-" + prefix + "-commander");
-        const sumInput = document.getElementById("op-" + prefix + "-summary");
-        const statusReadout = document.getElementById("op-" + prefix + "-http-status");
-        const verPill = document.getElementById("op-" + prefix + "-version-pill");
-        const card = document.getElementById("operator-card-" + prefix);
-
-        const verCheck = parsePositiveIntegerVersion(verInput.value);
-        if (!verCheck.valid) {
-          verInput.classList.add("input-invalid");
-          errEl.textContent = verCheck.error;
-          statusReadout.className = "http-status-readout badge badge-red font-mono";
-          statusReadout.textContent = "HTTP 422 · INVALID VERSION INPUT";
-          return null;
-        }
-        verInput.classList.remove("input-invalid");
-        errEl.textContent = "";
-
-        const patchPayload = {
-          expected_version: verCheck.value,
-          actor: actorHandle,
-          origin_node: gatewayNode,
-          status: statusSelect.value,
-          severity: sevSelect.value,
-          commander: cmdInput.value,
-          summary: sumInput.value
-        };
-
-        const result = await executeIncidentPatch(inc.incident_id, patchPayload);
-        if (result.ok) {
-          const freshInc = getSelectedIncident();
-          card.classList.remove("conflict-state");
-          card.classList.add("success-state");
-          verInput.value = String(freshInc.version);
-          verPill.className = "badge badge-green font-mono";
-          verPill.textContent = "COMMITTED: v" + freshInc.version;
-          statusReadout.className = "http-status-readout badge badge-green font-mono";
-          statusReadout.textContent = "HTTP 200 OK -> v" + freshInc.version;
-          renderAll();
-          return result;
-        }
-
-        if (result.httpStatus === 409) {
-          card.classList.remove("success-state");
-          card.classList.add("conflict-state");
-          verPill.className = "badge badge-red font-mono";
-          verPill.textContent = "STALE: v" + verCheck.value + " != v" + result.actual_version;
-          statusReadout.className = "http-status-readout badge badge-red font-mono";
-          statusReadout.textContent = "HTTP 409 CONFLICT · ERR-409-OPTIMISTIC-LOCK";
-          showConflictBanner(result);
-          renderAll();
-          return result;
-        }
-
-        card.classList.remove("success-state");
-        card.classList.add("conflict-state");
-        statusReadout.className = "http-status-readout badge badge-yellow font-mono";
-        statusReadout.textContent = "HTTP " + result.httpStatus + " · " + (result.code || "DOMAIN ERROR");
-        errEl.textContent = result.message || "Invalid state transition.";
-        renderAll();
-        return result;
-      }
-
-      /**
-       * 1-Click Concurrent Race Simulation (Operator A commits vN -> vN+1, Operator B sends stale vN -> 409 Conflict)
-       */
-      async function simulateConcurrentRace() {
-        const inc = getSelectedIncident();
-        if (!inc) return;
-
-        hideConflictBanner();
-        syncBothOperatorsToSelected();
-
-        const initialVersion = inc.version;
-        const nextAllowedStatuses = VALID_STATUS_TRANSITIONS[inc.status] || ["INVESTIGATING"];
-        const opATargetStatus = nextAllowedStatuses[0] || inc.status;
-
-        // Prepare Operator A (sre-daniela @ ws-gateway-01) with vN
-        document.getElementById("op-a-expected-version").value = String(initialVersion);
-        document.getElementById("op-a-status").value = opATargetStatus;
-        document.getElementById("op-a-summary").value =
-          inc.summary.split(" [Op-A")[0] + " [Op-A mitigated shard fan-out at v" + (initialVersion + 1) + "]";
-
-        // Prepare Operator B (oncall-carlos @ ws-gateway-02) ALSO holding stale vN
-        document.getElementById("op-b-expected-version").value = String(initialVersion);
-        document.getElementById("op-b-status").value = opATargetStatus;
-        document.getElementById("op-b-summary").value =
-          inc.summary.split(" [Op-A")[0] + " [Op-B concurrent reroute of gateway pool]";
-
-        // Step 1: Operator A commits first -> 200 OK (advances version to vN+1)
-        await handleOperatorCommit("a", "sre-daniela", "ws-gateway-01");
-
-        // Step 2: Operator B immediately sends stale expected_version = vN -> triggers HTTP 409 Conflict!
-        document.getElementById("op-b-expected-version").value = String(initialVersion);
-        await handleOperatorCommit("b", "oncall-carlos", "ws-gateway-02");
-      }
-
-      /**
-       * Rebase Operator B to Latest Version & Retry PATCH
-       */
-      async function rebaseOperatorBAndRetry() {
-        const inc = getSelectedIncident();
-        if (!inc) return;
-
-        document.getElementById("op-b-expected-version").value = String(inc.version);
-        document.getElementById("op-b-status").value = inc.status;
-        hideConflictBanner();
-        await handleOperatorCommit("b", "oncall-carlos", "ws-gateway-02");
-      }
-
-      /**
-       * Wire Interactive Event Listeners
-       */
-      function bindEvents() {
-        document.getElementById("filter-severity").addEventListener("change", renderIncidentMatrix);
-        document.getElementById("filter-status").addEventListener("change", renderIncidentMatrix);
-        document.getElementById("filter-query").addEventListener("input", renderIncidentMatrix);
-        document.getElementById("filter-event-type").addEventListener("change", renderBackplaneEvents);
-
-        document.getElementById("btn-op-a-sync").addEventListener("click", function () {
-          syncOperatorPanelToIncident("a", getSelectedIncident());
-        });
-        document.getElementById("btn-op-b-sync").addEventListener("click", function () {
-          syncOperatorPanelToIncident("b", getSelectedIncident());
-        });
-        document.getElementById("btn-sync-both-versions").addEventListener("click", function () {
-          hideConflictBanner();
-          syncBothOperatorsToSelected();
+          await loadAll();
         });
 
-        document.getElementById("btn-op-a-commit").addEventListener("click", function () {
-          handleOperatorCommit("a", "sre-daniela", "ws-gateway-01");
-        });
-        document.getElementById("btn-op-b-commit").addEventListener("click", function () {
-          handleOperatorCommit("b", "oncall-carlos", "ws-gateway-02");
-        });
-
-        document.getElementById("btn-simulate-race").addEventListener("click", function () {
-          simulateConcurrentRace();
+        document.getElementById("pf-reload-latest-btn").addEventListener("click", async function () {
+          els.conflictBanner.setAttribute("data-visible", "false");
+          await loadAll();
+          showToast("Tablero sincronizado con la última versión del equipo.");
         });
 
-        document.getElementById("btn-rebase-retry").addEventListener("click", function () {
-          rebaseOperatorBAndRetry();
-        });
+        document.getElementById("pf-new-task-btn").addEventListener("click", openNewTaskDrawer);
+        document.getElementById("pf-arch-btn").addEventListener("click", function () { loadArchitectureTelemetry(); els.archBackdrop.setAttribute("data-open", "true"); });
+        document.getElementById("pf-task-close").addEventListener("click", function () { els.taskBackdrop.setAttribute("data-open", "false"); });
+        document.getElementById("pf-new-close").addEventListener("click", function () { els.newBackdrop.setAttribute("data-open", "false"); });
+        document.getElementById("pf-arch-close").addEventListener("click", function () { els.archBackdrop.setAttribute("data-open", "false"); });
 
-        document.getElementById("btn-dismiss-conflict").addEventListener("click", function () {
-          hideConflictBanner();
-        });
-
-        document.getElementById("btn-sync-engine").addEventListener("click", async function () {
-          hideConflictBanner();
-          const connected = await probeAndSyncApi();
-          if (!connected) {
-            const fresh = buildCanonicalSeedState();
-            state.incidents = fresh.incidents;
-            state.auditLedger = fresh.auditLedger;
-            state.backplaneEvents = fresh.backplaneEvents;
-            state.occConflictCount = 0;
-            syncBothOperatorsToSelected();
-            renderAll();
+        window.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            els.taskBackdrop.setAttribute("data-open", "false");
+            els.newBackdrop.setAttribute("data-open", "false");
+            els.archBackdrop.setAttribute("data-open", "false");
           }
         });
 
-        document.getElementById("btn-add-comment").addEventListener("click", function () {
-          const inc = getSelectedIncident();
-          if (!inc) return;
-          const authorSelect = document.getElementById("comment-author-select");
-          const bodyInput = document.getElementById("comment-body-input");
-          const author = authorSelect.value;
-          const originNode = author === "sre-daniela" ? "ws-gateway-01" : "ws-gateway-02";
-          executeAddComment(inc.incident_id, author, originNode, bodyInput.value);
-          bodyInput.value = "";
-        });
-
-        // Real-time numeric input validation on expected_version inputs
-        ["a", "b"].forEach(function (prefix) {
-          const inputEl = document.getElementById("op-" + prefix + "-expected-version");
-          const errEl = document.getElementById("op-" + prefix + "-version-error");
-          inputEl.addEventListener("input", function () {
-            const res = parsePositiveIntegerVersion(inputEl.value);
-            if (!res.valid) {
-              inputEl.classList.add("input-invalid");
-              errEl.textContent = res.error;
-            } else {
-              inputEl.classList.remove("input-invalid");
-              errEl.textContent = "";
-            }
-          });
-        });
-      }
-
-      /**
-       * IntersectionObserver Scroll-Entry Animation (Minimalist Skill Section 7)
-       */
-      function initScrollReveal() {
-        const blocks = document.querySelectorAll(".reveal-block");
-        if (!("IntersectionObserver" in window)) {
-          for (let i = 0; i < blocks.length; i++) {
-            blocks[i].classList.add("is-visible");
-          }
-          return;
-        }
-        const observer = new IntersectionObserver(function (entries) {
-          for (let i = 0; i < entries.length; i++) {
-            if (entries[i].isIntersecting) {
-              entries[i].target.classList.add("is-visible");
-              observer.unobserve(entries[i].target);
-            }
-          }
-        }, { threshold: 0.05 });
-
-        for (let i = 0; i < blocks.length; i++) {
-          blocks[i].style.transitionDelay = (i * 65) + "ms";
-          observer.observe(blocks[i]);
-        }
-      }
-
-      // Initialize UI
-      bindEvents();
-      syncBothOperatorsToSelected();
-      renderAll();
-      initScrollReveal();
-      probeAndSyncApi();
-    })();
-  </script>
-</body>
+        loadAll();
+      })();
+    </script>
+  </body>
 </html>
